@@ -3,64 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visor de Facturas</title>
+    <title>Visor de Facturas con Gráfico</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
-        h1 { color: #333; }
-        button { padding: 10px 15px; font-size: 16px; cursor: pointer; margin-bottom: 20px; background-color: #0078d4; color: white; border: none; border-radius: 3px;}
+        h1 { color: #333; text-align: center; }
+        button { display: block; margin: 0 auto 20px auto; padding: 10px 15px; font-size: 16px; cursor: pointer; background-color: #0078d4; color: white; border: none; border-radius: 3px;}
         button:disabled { background-color: #ccc; }
-        #error-message { color: #a00; font-weight: bold; margin-top: 10px;}
-        #loading-message { margin-top: 10px; font-style: italic; color: #555;}
-        #data-container { display: flex; flex-wrap: wrap; gap: 15px; }
-        .factura-card {
+        #error-message { color: #a00; font-weight: bold; margin-top: 10px; text-align: center;}
+        #loading-message { margin-top: 10px; font-style: italic; color: #555; text-align: center;}
+        #chart-container { width: 80%; max-width: 800px; margin: 20px auto; background-color: white; padding: 15px; border-radius: 5px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);}
+        #data-container { display: flex; flex-wrap: wrap; gap: 15px; list-style: none; padding: 0; margin-top: 30px; justify-content: center;}
+        .factura-card { /* Mantenemos las tarjetas también */
             background-color: white;
             border: 1px solid #ddd;
             border-radius: 5px;
             padding: 15px;
-            width: calc(33% - 30px); /* Tres tarjetas por fila aprox. */
+            width: calc(33% - 30px); 
             box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
             box-sizing: border-box;
+            min-width: 250px; /* Ancho mínimo para tarjetas */
         }
         .factura-card h3 { margin-top: 0; font-size: 1.1em; color: #005a9e; }
         .factura-card p { margin: 5px 0; font-size: 0.95em; }
-        /* Media query for smaller screens */
-        @media (max-width: 768px) {
-            .factura-card { width: calc(50% - 20px); } /* Dos tarjetas */
-        }
-        @media (max-width: 480px) {
-            .factura-card { width: 100%; } /* Una tarjeta */
-        }
+        @media (max-width: 768px) { .factura-card { width: calc(50% - 20px); } }
+        @media (max-width: 480px) { .factura-card { width: 100%; } }
     </style>
 </head>
 <body>
 
     <h1>Visor Últimas Facturas</h1>
 
-    <button id="load-button">Cargar Facturas</button>
+    <button id="load-button">Cargar Facturas y Generar Gráfico</button>
 
     <div id="loading-message" style="display: none;">Cargando...</div>
     <div id="error-message"></div>
+
+    <div id="chart-container" style="display: none;">
+         <h2>Facturas por Mes</h2>
+         <canvas id="invoiceChart"></canvas>
+    </div>
+
+    <hr style="margin: 30px 0;">
+
     <div id="data-container">
         </div>
 
     <script>
         const loadButton = document.getElementById('load-button');
         const dataContainer = document.getElementById('data-container');
+        const chartContainer = document.getElementById('chart-container');
         const loadingMessage = document.getElementById('loading-message');
         const errorMessage = document.getElementById('error-message');
+        let myInvoiceChart = null; // Variable para guardar la instancia del gráfico
 
-        // --- ¡¡PEGA AQUÍ LA URL DEL NUEVO FLUJO QUE ACABAS DE CREAR!! ---
+        // --- ¡¡PEGA AQUÍ LA URL DEL FLUJO QUE LEE LA BASE DE DATOS SQL DE FABRIC!! ---
         const flowUrl = 'https://prod-77.westus.logic.azure.com:443/workflows/1ba29feb037d422bb281c8c8eacc4a04/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=9gjMKfE5XIxBTi-KNXDcatl3NXchpZN6eGq8xDgrM5g'; 
-        // -------------------------------------------------------------
+        // --------------------------------------------------------------------------
 
         async function fetchData() {
-            dataContainer.innerHTML = '';
+            dataContainer.innerHTML = ''; // Limpiar tarjetas
+            chartContainer.style.display = 'none'; // Ocultar contenedor del gráfico
+            if (myInvoiceChart) {
+                myInvoiceChart.destroy(); // Destruir gráfico anterior si existe
+            }
             errorMessage.innerHTML = '';
             loadingMessage.style.display = 'block';
             loadButton.disabled = true; 
 
-             if (flowUrl === 'PegaAquíLaURLDelNuevoFlujoAPILeerSQL' || !flowUrl || flowUrl.trim() === '') {
-                errorMessage.textContent = 'Error: Configuración incompleta. Debes pegar la URL correcta del flujo de Power Automate.';
+             if (flowUrl === 'PegaAquíLaURLDelFlujoQueLeeSQL' || !flowUrl || flowUrl.trim() === '') {
+                errorMessage.textContent = 'Error: Configuración incompleta. Debes pegar la URL correcta.';
                 loadingMessage.style.display = 'none';
                 loadButton.disabled = false; 
                 return; 
@@ -82,47 +94,81 @@
 
                 if (!Array.isArray(data)) {
                      console.error('Respuesta recibida (no es array):', data); 
-                     throw new Error('La respuesta recibida del flujo no es un array como se esperaba.');
+                     throw new Error('La respuesta recibida no es un array.');
                 }
 
                 if (data.length === 0) {
                     dataContainer.innerHTML = '<p>No se encontraron facturas.</p>';
                 } else {
+                    // --- Procesar datos para el gráfico y las tarjetas ---
+                    const monthlyCounts = {}; // Objeto para contar facturas por mes
+
                     data.forEach(item => {
+                        // --- Lógica para Tarjetas (como antes) ---
                         const card = document.createElement('div');
                         card.className = 'factura-card';
-                        
-                        // Acceder a los datos usando los nombres de columna devueltos por SQL
-                        // Usar notación de corchetes para nombres con espacios
-                        const razonSocial = item['Razon Social'] || 'N/A';
-                        const folio = item.Folio || 'N/A'; // Asume que Folio no tiene espacio
-                        let fechaDocto = item['Fecha Docto'] || 'N/A';
-                        
-                        // Formatear la fecha (opcional, viene como YYYY-MM-DDTHH:mm:ss o YYYY-MM-DD)
-                        if (fechaDocto !== 'N/A') {
-                            try {
-                                // Intentar crear un objeto fecha y formatearlo a DD/MM/YYYY
-                                const fechaObj = new Date(fechaDocto);
-                                // Extraer día, mes y año (cuidado con UTC vs local)
-                                const dia = String(fechaObj.getUTCDate()).padStart(2, '0');
-                                const mes = String(fechaObj.getUTCMonth() + 1).padStart(2, '0'); // Meses son 0-11
-                                const anio = fechaObj.getUTCFullYear();
-                                fechaDocto = `${dia}/${mes}/${anio}`;
-                            } catch (e) {
-                                // Si falla el formateo, dejarla como vino (o 'N/A')
-                                console.error("Error formateando fecha: ", fechaDocto, e);
-                                fechaDocto = item['Fecha Docto'] || 'N/A'; // Reasignar por si acaso
-                            }
-                        }
+                        const razonSocial = item['Razon_x0020_Social'] || 'N/A';
+                        const folio = item.Folio || 'N/A';
+                        let fechaDoctoStr = item['Fecha_x0020_Docto'] || null; // Fecha como texto
+                        let fechaFormateada = 'N/A';
 
-                        card.innerHTML = `
-                            <h3>${razonSocial}</h3>
-                            <p><strong>Folio:</strong> ${folio}</p>
-                            <p><strong>Fecha:</strong> ${fechaDocto}</p>
-                        `;
-                        
+                        if (fechaDoctoStr) {
+                            try {
+                                const fechaObj = new Date(fechaDoctoStr);
+                                if (!isNaN(fechaObj)) { // Validar fecha
+                                     // Formatear para tarjeta
+                                     const dia = String(fechaObj.getUTCDate()).padStart(2, '0');
+                                     const mes = String(fechaObj.getUTCMonth() + 1).padStart(2, '0');
+                                     const anio = fechaObj.getUTCFullYear();
+                                     fechaFormateada = `${dia}/${mes}/${anio}`;
+
+                                     // Contar para el gráfico (usar formato YYYY-MM)
+                                     const yearMonth = `${anio}-${mes}`;
+                                     monthlyCounts[yearMonth] = (monthlyCounts[yearMonth] || 0) + 1;
+                                }
+                            } catch (e) { console.error("Error procesando fecha: ", fechaDoctoStr, e); }
+                        }
+                        card.innerHTML = `<h3>${razonSocial}</h3><p><strong>Folio:</strong> ${folio}</p><p><strong>Fecha:</strong> ${fechaFormateada}</p>`;
                         dataContainer.appendChild(card);
+                        // --- Fin Lógica para Tarjetas ---
                     });
+
+                    // --- Crear el Gráfico ---
+                    // Ordenar los meses cronológicamente
+                    const sortedMonths = Object.keys(monthlyCounts).sort();
+                    const chartLabels = sortedMonths;
+                    const chartData = sortedMonths.map(month => monthlyCounts[month]);
+
+                    if (chartLabels.length > 0) { // Solo mostrar gráfico si hay datos
+                       chartContainer.style.display = 'block'; // Mostrar contenedor
+                       const ctx = document.getElementById('invoiceChart').getContext('2d');
+                       myInvoiceChart = new Chart(ctx, {
+                            type: 'bar', // Tipo de gráfico: barras
+                            data: {
+                                labels: chartLabels, // Eje X: Meses (YYYY-MM)
+                                datasets: [{
+                                    label: 'Nº de Facturas', // Leyenda
+                                    data: chartData,      // Eje Y: Cantidad de facturas
+                                    backgroundColor: 'rgba(0, 120, 212, 0.6)', // Color barras
+                                    borderColor: 'rgba(0, 120, 212, 1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                scales: {
+                                    y: {
+                                        beginAtZero: true, // Empezar eje Y en 0
+                                        ticks: { // Asegurar que solo muestre enteros en el eje Y
+                                            stepSize: 1 
+                                        }
+                                    }
+                                },
+                                responsive: true,
+                                maintainAspectRatio: true // Ajusta según necesites
+                            }
+                        });
+                    }
+                    // --- Fin Crear el Gráfico ---
                 }
 
             } catch (error) {
