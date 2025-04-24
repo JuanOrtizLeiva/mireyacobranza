@@ -3,40 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diagnóstico - Leer Datos Flujo</title>
+    <title>Visor de Facturas</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; }
-        #data-container li { 
-            margin-bottom: 15px; 
-            border-bottom: 1px solid #ccc; 
-            padding-bottom: 10px; 
-            font-size: 0.9em; /* Letra un poco más pequeña */
-            word-wrap: break-word; /* Para que textos largos no rompan el diseño */
-        }
-        #error-message { color: red; margin-top: 15px; font-weight: bold;}
-        #loading-message { margin-top: 15px; font-style: italic; }
-        button { padding: 10px 15px; font-size: 16px; cursor: pointer; margin-bottom: 20px; }
-        pre { /* Estilo para el JSON crudo */
-            background-color: #f4f4f4;
-            padding: 5px;
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
+        h1 { color: #333; }
+        button { padding: 10px 15px; font-size: 16px; cursor: pointer; margin-bottom: 20px; background-color: #0078d4; color: white; border: none; border-radius: 3px;}
+        button:disabled { background-color: #ccc; }
+        #error-message { color: #a00; font-weight: bold; margin-top: 10px;}
+        #loading-message { margin-top: 10px; font-style: italic; color: #555;}
+        #data-container { display: flex; flex-wrap: wrap; gap: 15px; }
+        .factura-card {
+            background-color: white;
             border: 1px solid #ddd;
-            white-space: pre-wrap; /* Mantiene saltos de línea y espacios */
-            word-wrap: break-word;
-            margin-top: 5px;
-            font-family: monospace; /* Fuente monoespaciada para JSON */
+            border-radius: 5px;
+            padding: 15px;
+            width: calc(33% - 30px); /* Tres tarjetas por fila aprox. */
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+        .factura-card h3 { margin-top: 0; font-size: 1.1em; color: #005a9e; }
+        .factura-card p { margin: 5px 0; font-size: 0.95em; }
+        /* Media query for smaller screens */
+        @media (max-width: 768px) {
+            .factura-card { width: calc(50% - 20px); } /* Dos tarjetas */
+        }
+        @media (max-width: 480px) {
+            .factura-card { width: 100%; } /* Una tarjeta */
         }
     </style>
 </head>
 <body>
 
-    <h1>Diagnóstico - Leer Datos desde Flujo Power Automate</h1>
+    <h1>Visor Últimas Facturas</h1>
 
-    <button id="load-button">Cargar Datos del Flujo</button>
+    <button id="load-button">Cargar Facturas</button>
 
     <div id="loading-message" style="display: none;">Cargando...</div>
     <div id="error-message"></div>
-    <ul id="data-container">
-        </ul>
+    <div id="data-container">
+        </div>
 
     <script>
         const loadButton = document.getElementById('load-button');
@@ -44,8 +49,7 @@
         const loadingMessage = document.getElementById('loading-message');
         const errorMessage = document.getElementById('error-message');
 
-        // --- ¡¡ASEGÚRATE DE PONER LA URL DEL FLUJO CORRECTO AQUÍ!! ---
-        //     (El flujo que lee del Lakehouse y usa el trigger HTTP nuevo o modificado)
+        // --- ¡¡PEGA AQUÍ LA URL DEL NUEVO FLUJO QUE ACABAS DE CREAR!! ---
         const flowUrl = 'https://prod-77.westus.logic.azure.com:443/workflows/1ba29feb037d422bb281c8c8eacc4a04/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=9gjMKfE5XIxBTi-KNXDcatl3NXchpZN6eGq8xDgrM5g'; 
         // -------------------------------------------------------------
 
@@ -55,15 +59,15 @@
             loadingMessage.style.display = 'block';
             loadButton.disabled = true; 
 
-             if (flowUrl === 'PegaAquíLaURLDelFlujoQueLeeElLakehouse' || !flowUrl || flowUrl.trim() === '') {
-                errorMessage.textContent = 'Error: Configuración incompleta. Debes pegar la URL correcta de tu flujo de Power Automate en la variable "flowUrl".';
+             if (flowUrl === 'PegaAquíLaURLDelNuevoFlujoAPILeerSQL' || !flowUrl || flowUrl.trim() === '') {
+                errorMessage.textContent = 'Error: Configuración incompleta. Debes pegar la URL correcta del flujo de Power Automate.';
                 loadingMessage.style.display = 'none';
                 loadButton.disabled = false; 
                 return; 
             }
 
             try {
-                const response = await fetch(flowUrl); // Asume método GET
+                const response = await fetch(flowUrl); 
 
                 if (!response.ok) {
                     let errorText = response.statusText;
@@ -74,37 +78,50 @@
                     throw new Error(`Error HTTP: ${response.status} - ${errorText}`);
                 }
 
-                const data = await response.json(); // Intenta parsear como JSON
+                const data = await response.json(); 
 
                 if (!Array.isArray(data)) {
                      console.error('Respuesta recibida (no es array):', data); 
-                     throw new Error('La respuesta recibida del flujo no es un array (lista de elementos) como se esperaba.');
+                     throw new Error('La respuesta recibida del flujo no es un array como se esperaba.');
                 }
 
                 if (data.length === 0) {
-                    dataContainer.innerHTML = '<li>El flujo devolvió una lista vacía. Verifica si el Dataflow cargó datos al Lakehouse.</li>';
+                    dataContainer.innerHTML = '<p>No se encontraron facturas.</p>';
                 } else {
-                    data.forEach((item, index) => {
-                        const listItem = document.createElement('li');
+                    data.forEach(item => {
+                        const card = document.createElement('div');
+                        card.className = 'factura-card';
                         
-                        // Intenta mostrar algunas columnas comunes (¡AJUSTA ESTOS NOMBRES SI LOS SABES!)
-                        let commonData = `Fila ${index + 1}: `;
-                        commonData += `Nro: ${item.Nro || 'N/A'}, `; // Ejemplo
-                        commonData += `Rut: ${item['Rut cliente'] || 'N/A'}, `; // Ejemplo con espacio
-                        commonData += `Razon: ${item['Razon Social'] || 'N/A'}`; // Ejemplo con espacio
+                        // Acceder a los datos usando los nombres de columna devueltos por SQL
+                        // Usar notación de corchetes para nombres con espacios
+                        const razonSocial = item['Razon Social'] || 'N/A';
+                        const folio = item.Folio || 'N/A'; // Asume que Folio no tiene espacio
+                        let fechaDocto = item['Fecha Docto'] || 'N/A';
                         
-                        // Muestra los datos crudos (raw) del item en formato JSON
-                        let rawData = '';
-                        try {
-                            rawData = JSON.stringify(item, null, 2); // null, 2 para indentación bonita
-                        } catch (e) {
-                            rawData = "Error al convertir el item a JSON";
+                        // Formatear la fecha (opcional, viene como YYYY-MM-DDTHH:mm:ss o YYYY-MM-DD)
+                        if (fechaDocto !== 'N/A') {
+                            try {
+                                // Intentar crear un objeto fecha y formatearlo a DD/MM/YYYY
+                                const fechaObj = new Date(fechaDocto);
+                                // Extraer día, mes y año (cuidado con UTC vs local)
+                                const dia = String(fechaObj.getUTCDate()).padStart(2, '0');
+                                const mes = String(fechaObj.getUTCMonth() + 1).padStart(2, '0'); // Meses son 0-11
+                                const anio = fechaObj.getUTCFullYear();
+                                fechaDocto = `${dia}/${mes}/${anio}`;
+                            } catch (e) {
+                                // Si falla el formateo, dejarla como vino (o 'N/A')
+                                console.error("Error formateando fecha: ", fechaDocto, e);
+                                fechaDocto = item['Fecha Docto'] || 'N/A'; // Reasignar por si acaso
+                            }
                         }
 
-                        // Combina todo en el elemento de lista
-                        listItem.innerHTML = `${commonData}<br><strong>Datos Crudos (JSON):</strong><pre>${rawData}</pre>`;
+                        card.innerHTML = `
+                            <h3>${razonSocial}</h3>
+                            <p><strong>Folio:</strong> ${folio}</p>
+                            <p><strong>Fecha:</strong> ${fechaDocto}</p>
+                        `;
                         
-                        dataContainer.appendChild(listItem);
+                        dataContainer.appendChild(card);
                     });
                 }
 
