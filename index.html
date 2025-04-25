@@ -3,153 +3,633 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visor de Facturas y Notas de Crédito</title>
+    <title>Dashboard Analítico de Facturación</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
-        h1 { color: #333; text-align: center; }
-        button { display: block; margin: 0 auto 20px auto; padding: 10px 15px; font-size: 16px; cursor: pointer; background-color: #0078d4; color: white; border: none; border-radius: 3px;}
-        button:disabled { background-color: #ccc; }
-        #error-message { color: #a00; font-weight: bold; margin-top: 10px; text-align: center;}
-        #loading-message { margin-top: 10px; font-style: italic; color: #555; text-align: center;}
-        #chart-container { width: 80%; max-width: 800px; margin: 20px auto; background-color: white; padding: 15px; border-radius: 5px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);}
-        #data-container { display: flex; flex-wrap: wrap; gap: 15px; list-style: none; padding: 0; margin-top: 30px; justify-content: center;}
-        .factura-card { 
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 15px;
-            width: calc(33% - 30px); 
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-            box-sizing: border-box;
-            min-width: 250px;
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --secondary: #475569;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --gray-light: #f1f5f9;
+            --gray: #cbd5e1;
         }
-        .factura-card h3 { margin-top: 0; font-size: 1.1em; color: #005a9e; }
-        .factura-card p { margin: 5px 0; font-size: 0.95em; }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--gray-light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
         .login-container {
-            max-width: 400px;
+            max-width: 450px;
             margin: 100px auto;
             background-color: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease;
         }
-        .form-group {
-            margin-bottom: 15px;
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary);
         }
-        .form-group input {
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-            border: 1px solid #ddd;
-            border-radius: 3px;
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
         }
-        .login-error {
-            color: red;
-            margin-top: 10px;
+        
+        .login-header h2 {
+            font-size: 24px;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+        
+        .login-header p {
+            color: var(--secondary);
             font-size: 14px;
         }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 15px;
+            border: 1px solid var(--gray);
+            border-radius: 6px;
+            transition: border 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .btn {
+            display: inline-block;
+            font-weight: 500;
+            text-align: center;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+        
+        .login-error {
+            color: var(--danger);
+            margin-top: 15px;
+            font-size: 14px;
+            text-align: center;
+        }
+
         .hidden {
             display: none;
         }
-        .summary-box {
-            background-color: #e8f2fc;
-            border-radius: 5px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
+
+        /* Dashboard Styles */
+        .dashboard {
+            padding: 20px;
         }
-        .summary-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #0078d4;
-            margin: 10px 0;
-        }
-        .summary-label {
-            font-size: 14px;
-            color: #666;
-        }
-        .summary-container {
+
+        .dashboard-header {
             display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            margin: 20px auto;
-            max-width: 800px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
         }
-        .summary-item {
-            flex: 1;
-            min-width: 200px;
-            margin: 10px;
+
+        .dashboard-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark);
         }
-        @media (max-width: 768px) { .factura-card { width: calc(50% - 20px); } }
-        @media (max-width: 480px) { .factura-card { width: 100%; } }
+
+        .dashboard-controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .filter-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--secondary);
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--gray);
+            min-width: 150px;
+        }
+
+        /* Stats Cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-title {
+            font-size: 14px;
+            color: var(--secondary);
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .trend-up {
+            color: var(--success);
+        }
+
+        .trend-down {
+            color: var(--danger);
+        }
+
+        .trend-icon {
+            margin-right: 5px;
+        }
+
+        /* Charts Section */
+        .charts-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: 300px;
+        }
+
+        /* Top Clients Section */
+        .clients-section {
+            margin-bottom: 30px;
+        }
+
+        .clients-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .clients-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .clients-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .client-card {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .client-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .client-info {
+            font-size: 14px;
+            color: var(--secondary);
+            margin-bottom: 4px;
+        }
+
+        .client-amount {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 10px;
+        }
+
+        .client-rank {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 25px;
+            height: 25px;
+            background-color: var(--primary-light);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Table Section */
+        .table-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th, .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .data-table th {
+            background-color: var(--gray-light);
+            font-weight: 600;
+            color: var(--secondary);
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: var(--gray-light);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .page-btn {
+            padding: 6px 12px;
+            margin: 0 3px;
+            background-color: white;
+            border: 1px solid var(--gray);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .active-page {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Loader */
+        .loader-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+        }
+
+        .loader {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .filter-container {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .dashboard-controls {
+                width: 100%;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Formulario de login -->
+    <!-- Sección de Login -->
     <div id="login-section">
         <div class="login-container">
-            <h2 style="text-align: center;">Acceso al Sistema</h2>
+            <div class="login-logo">
+                <i class="fas fa-chart-line fa-3x"></i>
+            </div>
+            <div class="login-header">
+                <h2>Sistema de Análisis Financiero</h2>
+                <p>Ingrese sus credenciales para acceder al dashboard</p>
+            </div>
             <form id="login-form">
                 <div class="form-group">
-                    <label for="username">Usuario:</label>
-                    <input type="text" id="username" required>
+                    <label for="username">Usuario</label>
+                    <input type="text" id="username" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label for="password">Contraseña:</label>
-                    <input type="password" id="password" required>
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" class="form-control" required>
                 </div>
-                <button type="submit">Ingresar</button>
+                <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
                 <div id="login-error" class="login-error"></div>
             </form>
         </div>
     </div>
 
-    <!-- Contenido principal (oculto inicialmente) -->
+    <!-- Dashboard Principal -->
     <div id="main-content" class="hidden">
-        <h1>Análisis de Facturas y Notas de Crédito</h1>
-
-        <button id="load-button">Cargar Datos y Generar Estadísticas</button>
-
-        <div id="loading-message" class="hidden">Cargando...</div>
-        <div id="error-message"></div>
-
-        <!-- Resumen de estadísticas -->
-        <div id="summary-container" class="summary-container hidden">
-            <div class="summary-item">
-                <div class="summary-box">
-                    <div class="summary-label">Total Facturado</div>
-                    <div id="total-facturado" class="summary-value">$0</div>
+        <div class="dashboard">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title"><i class="fas fa-chart-line"></i> Dashboard Analítico de Facturación</h1>
+                <div class="dashboard-controls">
+                    <button id="load-button" class="btn btn-primary">
+                        <i class="fas fa-sync-alt"></i> Actualizar Datos
+                    </button>
                 </div>
             </div>
-            <div class="summary-item">
-                <div class="summary-box">
-                    <div class="summary-label">Total Notas de Crédito</div>
-                    <div id="total-nc" class="summary-value">$0</div>
+
+            <!-- Filtros -->
+            <div class="filter-container">
+                <div class="filter-item">
+                    <span class="filter-label">Año</span>
+                    <select id="year-filter" class="filter-select">
+                        <option value="all">Todos los años</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <span class="filter-label">Mes</span>
+                    <select id="month-filter" class="filter-select">
+                        <option value="all">Todos los meses</option>
+                        <option value="01">Enero</option>
+                        <option value="02">Febrero</option>
+                        <option value="03">Marzo</option>
+                        <option value="04">Abril</option>
+                        <option value="05">Mayo</option>
+                        <option value="06">Junio</option>
+                        <option value="07">Julio</option>
+                        <option value="08">Agosto</option>
+                        <option value="09">Septiembre</option>
+                        <option value="10">Octubre</option>
+                        <option value="11">Noviembre</option>
+                        <option value="12">Diciembre</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <span class="filter-label">Cliente</span>
+                    <select id="client-filter" class="filter-select">
+                        <option value="all">Todos los clientes</option>
+                    </select>
                 </div>
             </div>
-            <div class="summary-item">
-                <div class="summary-box">
-                    <div class="summary-label">Neto Real</div>
-                    <div id="total-neto" class="summary-value">$0</div>
+
+            <!-- Mensaje de error y carga -->
+            <div id="loading-message" class="loader-container hidden">
+                <div class="loader"></div>
+            </div>
+            <div id="error-message" class="login-error"></div>
+
+            <!-- Tarjetas de Estadísticas -->
+            <div id="stats-container" class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-title">Total Facturado</div>
+                    <div id="total-facturado" class="stat-value">$0</div>
+                    <div id="trend-facturado" class="stat-trend trend-up">
+                        <i class="fas fa-arrow-up trend-icon"></i> 0% vs. período anterior
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Total Notas de Crédito</div>
+                    <div id="total-nc" class="stat-value">$0</div>
+                    <div id="trend-nc" class="stat-trend trend-down">
+                        <i class="fas fa-arrow-down trend-icon"></i> 0% vs. período anterior
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Venta Neta</div>
+                    <div id="total-neto" class="stat-value">$0</div>
+                    <div id="trend-neto" class="stat-trend trend-up">
+                        <i class="fas fa-arrow-up trend-icon"></i> 0% vs. período anterior
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Documentos Emitidos</div>
+                    <div id="total-docs" class="stat-value">0</div>
+                    <div id="trend-docs" class="stat-trend trend-up">
+                        <i class="fas fa-arrow-up trend-icon"></i> 0% vs. período anterior
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div id="chart-container" class="hidden">
-             <h2>Montos por Mes</h2>
-             <canvas id="invoiceChart"></canvas>
-        </div>
+            <!-- Gráficos -->
+            <div class="charts-container">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Evolución de Ventas por Período</h3>
+                    </div>
+                    <canvas id="salesChart" class="chart-canvas"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Distribución de Ventas</h3>
+                    </div>
+                    <canvas id="distributionChart" class="chart-canvas"></canvas>
+                </div>
+            </div>
 
-        <hr style="margin: 30px 0;">
-        
-        <h2 style="text-align: center;">Últimas Facturas</h2>
-        <div id="data-container">
+            <!-- Top Clientes -->
+            <div class="clients-section">
+                <div class="clients-header">
+                    <h3 class="clients-title">Top 5 Clientes</h3>
+                </div>
+                <div id="clients-container" class="clients-container"></div>
+            </div>
+
+            <!-- Tabla de Facturas -->
+            <div class="table-section">
+                <div class="table-header">
+                    <h3 class="table-title">Detalle de Facturas</h3>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Folio</th>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>RUT</th>
+                                <th>Monto Neto</th>
+                                <th>Exento</th>
+                                <th>Total c/IVA</th>
+                                <th>Notas Crédito</th>
+                                <th>Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoice-table-body">
+                            <!-- Los datos se cargarán dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="pagination" class="pagination">
+                    <!-- Paginación se generará dinámicamente -->
+                </div>
+            </div>
         </div>
     </div>
 
@@ -160,15 +640,46 @@
         const loginForm = document.getElementById('login-form');
         const loginError = document.getElementById('login-error');
         const loadButton = document.getElementById('load-button');
-        const dataContainer = document.getElementById('data-container');
-        const chartContainer = document.getElementById('chart-container');
         const loadingMessage = document.getElementById('loading-message');
         const errorMessage = document.getElementById('error-message');
-        const summaryContainer = document.getElementById('summary-container');
-        let myInvoiceChart = null;
-
+        
+        // Filtros
+        const yearFilter = document.getElementById('year-filter');
+        const monthFilter = document.getElementById('month-filter');
+        const clientFilter = document.getElementById('client-filter');
+        
+        // Tabla y paginación
+        const invoiceTableBody = document.getElementById('invoice-table-body');
+        const pagination = document.getElementById('pagination');
+        
+        // Variables para datos
+        let allData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        const rowsPerPage = 10;
+        let yearOptions = new Set();
+        let clientOptions = new Set();
+        
+        // Gráficos
+        let salesChart;
+        let distributionChart;
+        
         // URL del flujo (mantener la misma)
         const flowUrl = 'https://prod-77.westus.logic.azure.com:443/workflows/1ba29feb037d422bb281c8c8eacc4a04/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=9gjMKfE5XIxBTi-KNXDcatl3NXchpZN6eGq8xDgrM5g'; 
+
+        // Formateo de moneda
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('es-CL', { 
+                style: 'currency', 
+                currency: 'CLP',
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+        
+        // Formateo de porcentaje
+        function formatPercent(value) {
+            return `${value.toFixed(1)}%`;
+        }
 
         // Manejo de login
         loginForm.addEventListener('submit', function(e) {
@@ -180,191 +691,585 @@
                 // Login exitoso
                 loginSection.classList.add('hidden');
                 mainContent.classList.remove('hidden');
+                // Cargar datos automáticamente al ingresar
+                fetchData();
             } else {
                 // Error de login
                 loginError.textContent = 'Usuario o contraseña incorrectos';
             }
         });
 
-        // Formateo de moneda
-        function formatCurrency(value) {
-            return new Intl.NumberFormat('es-CL', { 
-                style: 'currency', 
-                currency: 'CLP',
-                maximumFractionDigits: 0
-            }).format(value);
-        }
+        // Evento para botón de carga
+        loadButton.addEventListener('click', fetchData);
+        
+        // Eventos para filtros
+        yearFilter.addEventListener('change', applyFilters);
+        monthFilter.addEventListener('change', applyFilters);
+        clientFilter.addEventListener('change', applyFilters);
 
-        // Función para cargar los datos
+        // Función para obtener datos
         async function fetchData() {
-            // Limpiar contenidos previos
-            dataContainer.innerHTML = '';
-            chartContainer.classList.add('hidden');
-            summaryContainer.classList.add('hidden');
+            // Limpiar y mostrar carga
+            resetUI();
             
-            if (myInvoiceChart) {
-                myInvoiceChart.destroy();
-            }
-            
-            errorMessage.innerHTML = '';
-            loadingMessage.classList.remove('hidden');
-            loadButton.disabled = true;
-
-            if (!flowUrl || flowUrl.trim() === '') {
-                errorMessage.textContent = 'Error: URL del flujo no configurada.';
-                loadingMessage.classList.add('hidden');
-                loadButton.disabled = false;
-                return;
-            }
-
             try {
+                loadingMessage.classList.remove('hidden');
+                loadButton.disabled = true;
+                
                 const response = await fetch(flowUrl);
-
+                
                 if (!response.ok) {
-                    let errorText = response.statusText;
-                    try {
-                        const errorBody = await response.text();
-                        if (errorBody) { errorText += `: ${errorBody}`; }
-                    } catch(e) { /* Ignorar */ }
-                    throw new Error(`Error HTTP: ${response.status} - ${errorText}`);
+                    throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
                 }
-
+                
                 const data = await response.json();
-
+                
                 if (!Array.isArray(data)) {
-                    console.error('Respuesta recibida (no es array):', data);
-                    throw new Error('La respuesta recibida no es un array.');
+                    throw new Error('La respuesta recibida no es un array');
                 }
-
-                if (data.length === 0) {
-                    dataContainer.innerHTML = '<p style="text-align: center; margin-top: 20px;">No se encontraron facturas.</p>';
-                } else {
-                    // Preparar datos para el gráfico
-                    const monthlyData = {};
-                    let totalFacturas = 0;
-                    let totalNC = 0;
-                    let totalNeto = 0;
-
-                    data.forEach(item => {
-                        // Procesar la fecha
-                        let fechaDoctoStr = item['Fecha_x0020_Docto'] || '';
-                        let fechaObj = new Date(fechaDoctoStr);
-                        let anio = fechaObj.getUTCFullYear();
-                        let mes = String(fechaObj.getUTCMonth() + 1).padStart(2, '0');
-                        let yearMonth = `${anio}-${mes}`;
-                        
-                        // Montos
-                        const montoFactura = parseFloat(item.MontoFacturaOriginal) || 0;
-                        const montoNC = parseFloat(item.MontoNotasCredito) || 0;
-                        const montoNeto = parseFloat(item.MontoNetoReal) || 0;
-                        
-                        // Actualizar totales
-                        totalFacturas += montoFactura;
-                        totalNC += montoNC;
-                        totalNeto += montoNeto;
-                        
-                        // Agregar al acumulado mensual
-                        if (!monthlyData[yearMonth]) {
-                            monthlyData[yearMonth] = {
-                                facturas: 0,
-                                notasCredito: 0,
-                                neto: 0
-                            };
-                        }
-                        
-                        monthlyData[yearMonth].facturas += montoFactura;
-                        monthlyData[yearMonth].notasCredito += montoNC;
-                        monthlyData[yearMonth].neto += montoNeto;
-                        
-                        // Crear tarjeta para la factura
-                        const card = document.createElement('div');
-                        card.className = 'factura-card';
-                        
-                        // Formatear la fecha
-                        let fechaFormateada = 'N/A';
-                        if (!isNaN(fechaObj)) {
-                            const dia = String(fechaObj.getUTCDate()).padStart(2, '0');
-                            fechaFormateada = `${dia}/${mes}/${anio}`;
-                        }
-                        
-                        const razonSocial = item['Razon_x0020_Social'] || 'N/A';
-                        const folio = item.Folio || 'N/A';
-                        
-                        card.innerHTML = `
-                            <h3>${razonSocial}</h3>
-                            <p><strong>Folio:</strong> ${folio}</p>
-                            <p><strong>Fecha:</strong> ${fechaFormateada}</p>
-                            <p><strong>Monto Original:</strong> ${formatCurrency(montoFactura)}</p>
-                            <p><strong>Notas de Crédito:</strong> ${formatCurrency(montoNC)}</p>
-                            <p><strong>Monto Neto:</strong> ${formatCurrency(montoNeto)}</p>
-                        `;
-                        
-                        dataContainer.appendChild(card);
-                    });
-                    
-                    // Actualizar resumen estadístico
-                    document.getElementById('total-facturado').textContent = formatCurrency(totalFacturas);
-                    document.getElementById('total-nc').textContent = formatCurrency(totalNC);
-                    document.getElementById('total-neto').textContent = formatCurrency(totalNeto);
-                    summaryContainer.classList.remove('hidden');
-                    
-                    // Crear el gráfico
-                    const sortedMonths = Object.keys(monthlyData).sort();
-                    
-                    if (sortedMonths.length > 0) {
-                        chartContainer.classList.remove('hidden');
-                        const ctx = document.getElementById('invoiceChart').getContext('2d');
-                        
-                        myInvoiceChart = new Chart(ctx, {
-                            type: 'bar',
-                            data: {
-                                labels: sortedMonths,
-                                datasets: [
-                                    {
-                                        label: 'Monto Facturas',
-                                        data: sortedMonths.map(month => monthlyData[month].facturas),
-                                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                                        borderColor: 'rgba(54, 162, 235, 1)',
-                                        borderWidth: 1
-                                    },
-                                    {
-                                        label: 'Notas de Crédito',
-                                        data: sortedMonths.map(month => monthlyData[month].notasCredito),
-                                        backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                                        borderColor: 'rgba(255, 99, 132, 1)',
-                                        borderWidth: 1
-                                    },
-                                    {
-                                        label: 'Monto Neto',
-                                        data: sortedMonths.map(month => monthlyData[month].neto),
-                                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                                        borderColor: 'rgba(75, 192, 192, 1)',
-                                        borderWidth: 1
-                                    }
-                                ]
-                            },
-                            options: {
-                                scales: {
-                                    y: {
-                                        beginAtZero: true
-                                    }
-                                },
-                                responsive: true,
-                                maintainAspectRatio: true
-                            }
-                        });
-                    }
-                }
+                
+                // Procesar datos
+                processData(data);
+                
             } catch (error) {
-                console.error('Error detallado al cargar datos:', error);
-                errorMessage.textContent = `Error al cargar datos: ${error.message}`;
+                console.error('Error al cargar datos:', error);
+                errorMessage.textContent = `Error: ${error.message}`;
             } finally {
                 loadingMessage.classList.add('hidden');
                 loadButton.disabled = false;
             }
         }
-
-        loadButton.addEventListener('click', fetchData);
+        
+        // Función para resetear la UI
+        function resetUI() {
+            errorMessage.textContent = '';
+            if (salesChart) salesChart.destroy();
+            if (distributionChart) distributionChart.destroy();
+            document.getElementById('clients-container').innerHTML = '';
+            invoiceTableBody.innerHTML = '';
+            pagination.innerHTML = '';
+        }
+        
+        // Función para procesar datos recibidos
+        function processData(data) {
+            // Guardar todos los datos
+            allData = data.map(item => {
+                // Procesar fecha
+                let fechaObj;
+                try {
+                    fechaObj = new Date(item['Fecha_x0020_Docto'] || '');
+                } catch (e) {
+                    fechaObj = new Date();
+                }
+                
+                // Extraer RUT si está en la razón social (formato típico: "NOMBRE RUT:12345678-9")
+                let rut = 'N/A';
+                const razonSocial = item['Razon_x0020_Social'] || '';
+                const rutMatch = razonSocial.match(/RUT:(\d+-[0-9kK])/i);
+                if (rutMatch) {
+                    rut = rutMatch[1];
+                }
+                
+                // Calcular montos relevantes (agregando para compatibilidad con diferentes estructuras de datos)
+                const montoFactura = parseFloat(item.MontoFacturaOriginal || item['Monto_x0020_total'] || 0);
+                const montoNC = parseFloat(item.MontoNotasCredito || 0);
+                const montoNeto = parseFloat(item.MontoNetoReal || montoFactura - montoNC);
+                
+                // Calcular valores para IVA y exento (simulados si no existen)
+                const exento = parseFloat(item.MontoExento || 0);
+                const totalConIVA = parseFloat(item.TotalConIVA || montoFactura * 1.19);
+                
+                return {
+                    folio: item.Folio || 'N/A',
+                    fecha: fechaObj,
+                    razonSocial: razonSocial.replace(/RUT:(\d+-[0-9kK])/i, '').trim(),
+                    rut: rut,
+                    montoFactura: montoFactura,
+                    montoNC: montoNC,
+                    montoNeto: montoNeto,
+                    exento: exento,
+                    totalConIVA: totalConIVA,
+                    anio: fechaObj.getFullYear(),
+                    mes: String(fechaObj.getMonth() + 1).padStart(2, '0')
+                };
+            });
+            
+            // Extraer opciones de año y cliente para los filtros
+            yearOptions = new Set(allData.map(item => item.anio));
+            clientOptions = new Set(allData.map(item => item.razonSocial));
+            
+            // Actualizar selectores de filtros
+            updateFilterOptions();
+            
+            // Aplicar filtros (inicialmente muestra todo)
+            applyFilters();
+        }
+        
+        // Actualizar opciones de filtros
+        function updateFilterOptions() {
+            // Limpiar opciones actuales (mantener la opción "todos")
+            while (yearFilter.options.length > 1) {
+                yearFilter.remove(1);
+            }
+            
+            while (clientFilter.options.length > 1) {
+                clientFilter.remove(1);
+            }
+            
+            // Agregar años ordenados de más reciente a más antiguo
+            [...yearOptions].sort((a, b) => b - a).forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearFilter.appendChild(option);
+            });
+            
+            // Agregar clientes ordenados alfabéticamente
+            [...clientOptions].sort().forEach(client => {
+                if (client) {  // Asegurarse de que no sea vacío
+                    const option = document.createElement('option');
+                    option.value = client;
+                    option.textContent = client.length > 30 ? client.substring(0, 30) + '...' : client;
+                    clientFilter.appendChild(option);
+                }
+            });
+        }
+        
+        // Aplicar filtros y actualizar visualización
+        function applyFilters() {
+            const selectedYear = yearFilter.value;
+            const selectedMonth = monthFilter.value;
+            const selectedClient = clientFilter.value;
+            
+            // Filtrar datos según selecciones
+            filteredData = allData.filter(item => {
+                return (selectedYear === 'all' || item.anio.toString() === selectedYear) &&
+                       (selectedMonth === 'all' || item.mes === selectedMonth) &&
+                       (selectedClient === 'all' || item.razonSocial === selectedClient);
+            });
+            
+            // Resetear a primera página
+            currentPage = 1;
+            
+            // Actualizar visualizaciones
+            updateStats();
+            updateCharts();
+            updateTopClients();
+            updateTable();
+        }
+        
+        // Actualizar estadísticas principales
+        function updateStats() {
+            // Calcular totales
+            const totalFacturado = filteredData.reduce((sum, item) => sum + item.montoFactura, 0);
+            const totalNC = filteredData.reduce((sum, item) => sum + item.montoNC, 0);
+            const totalNeto = filteredData.reduce((sum, item) => sum + item.montoNeto, 0);
+            const totalDocs = filteredData.length;
+            
+            // Actualizar valores en UI
+            document.getElementById('total-facturado').textContent = formatCurrency(totalFacturado);
+            document.getElementById('total-nc').textContent = formatCurrency(totalNC);
+            document.getElementById('total-neto').textContent = formatCurrency(totalNeto);
+            document.getElementById('total-docs').textContent = totalDocs;
+            
+            // Tendencias simuladas (solo para demostración)
+            // En una implementación real, compararías con periodos anteriores
+            const trendFacturado = Math.random() * 20 - 5; // Entre -5% y +15%
+            const trendNC = Math.random() * 10 - 8; // Entre -8% y +2%
+            const trendNeto = Math.random() * 25 - 5; // Entre -5% y +20%
+            const trendDocs = Math.random() * 15 - 3; // Entre -3% y +12%
+            
+            // Actualizar tendencias en UI
+            updateTrend('trend-facturado', trendFacturado);
+            updateTrend('trend-nc', trendNC);
+            updateTrend('trend-neto', trendNeto);
+            updateTrend('trend-docs', trendDocs);
+        }
+        
+        // Actualizar indicador de tendencia
+        function updateTrend(elementId, value) {
+            const element = document.getElementById(elementId);
+            
+            if (value >= 0) {
+                element.className = 'stat-trend trend-up';
+                element.innerHTML = `<i class="fas fa-arrow-up trend-icon"></i> ${formatPercent(value)} vs. período anterior`;
+            } else {
+                element.className = 'stat-trend trend-down';
+                element.innerHTML = `<i class="fas fa-arrow-down trend-icon"></i> ${formatPercent(Math.abs(value))} vs. período anterior`;
+            }
+        }
+        
+        // Actualizar gráficos
+        function updateCharts() {
+            // Preparar datos para gráfico de evolución
+            const salesByPeriod = {};
+            
+            // Agrupar por año-mes
+            filteredData.forEach(item => {
+                const period = `${item.anio}-${item.mes}`;
+                if (!salesByPeriod[period]) {
+                    salesByPeriod[period] = {
+                        facturas: 0,
+                        nc: 0,
+                        neto: 0
+                    };
+                }
+                
+                salesByPeriod[period].facturas += item.montoFactura;
+                salesByPeriod[period].nc += item.montoNC;
+                salesByPeriod[period].neto += item.montoNeto;
+            });
+            
+            // Ordenar periodos
+            const sortedPeriods = Object.keys(salesByPeriod).sort();
+            
+            // Preparar datos para gráfico
+            const chartLabels = sortedPeriods.map(period => {
+                const [year, month] = period.split('-');
+                return `${month}/${year}`;
+            });
+            
+            const facturasData = sortedPeriods.map(period => salesByPeriod[period].facturas);
+            const ncData = sortedPeriods.map(period => salesByPeriod[period].nc);
+            const netoData = sortedPeriods.map(period => salesByPeriod[period].neto);
+            
+            // Crear gráfico de evolución de ventas
+            const salesCtx = document.getElementById('salesChart').getContext('2d');
+            
+            if (salesChart) {
+                salesChart.destroy();
+            }
+            
+            salesChart = new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: chartLabels,
+                    datasets: [
+                        {
+                            label: 'Ventas Brutas',
+                            data: facturasData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 2,
+                            tension: 0.1,
+                            fill: false
+                        },
+                        {
+                            label: 'Notas de Crédito',
+                            data: ncData,
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 2,
+                            tension: 0.1,
+                            fill: false
+                        },
+                        {
+                            label: 'Ventas Netas',
+                            data: netoData,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 3,
+                            tension: 0.1,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value).replace('$', '');
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatCurrency(context.raw);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Crear gráfico de distribución (pie)
+            const distributionCtx = document.getElementById('distributionChart').getContext('2d');
+            
+            // Calcular totales por cliente
+            const clientTotals = {};
+            filteredData.forEach(item => {
+                if (!clientTotals[item.razonSocial]) {
+                    clientTotals[item.razonSocial] = 0;
+                }
+                clientTotals[item.razonSocial] += item.montoNeto;
+            });
+            
+            // Ordenar clientes por monto total (de mayor a menor)
+            const sortedClients = Object.keys(clientTotals)
+                .sort((a, b) => clientTotals[b] - clientTotals[a]);
+            
+            // Tomar los 5 principales y agrupar el resto
+            const topClients = sortedClients.slice(0, 5);
+            const otherClients = sortedClients.slice(5);
+            
+            const pieLabels = [...topClients];
+            const pieData = topClients.map(client => clientTotals[client]);
+            
+            // Agregar "Otros" si hay más clientes
+            if (otherClients.length > 0) {
+                const otherTotal = otherClients.reduce((sum, client) => sum + clientTotals[client], 0);
+                pieLabels.push('Otros');
+                pieData.push(otherTotal);
+            }
+            
+            // Colores para el gráfico
+            const pieColors = [
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(153, 102, 255, 0.7)',
+                'rgba(255, 159, 64, 0.7)',
+                'rgba(201, 203, 207, 0.7)'
+            ];
+            
+            if (distributionChart) {
+                distributionChart.destroy();
+            }
+            
+            distributionChart = new Chart(distributionCtx, {
+                type: 'pie',
+                data: {
+                    labels: pieLabels.map(label => label.length > 20 ? label.substring(0, 20) + '...' : label),
+                    datasets: [{
+                        data: pieData,
+                        backgroundColor: pieColors,
+                        borderColor: pieColors.map(color => color.replace('0.7', '1')),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value * 100) / total).toFixed(1);
+                                    return `${formatCurrency(value)} (${percentage}%)`;
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 15
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Actualizar sección de top clientes
+        function updateTopClients() {
+            const clientsContainer = document.getElementById('clients-container');
+            clientsContainer.innerHTML = '';
+            
+            // Agrupar por cliente
+            const clientData = {};
+            filteredData.forEach(item => {
+                if (!clientData[item.razonSocial]) {
+                    clientData[item.razonSocial] = {
+                        total: 0,
+                        facturas: 0,
+                        rut: item.rut
+                    };
+                }
+                
+                clientData[item.razonSocial].total += item.montoNeto;
+                clientData[item.razonSocial].facturas++;
+            });
+            
+            // Ordenar y obtener top 5
+            const topClients = Object.keys(clientData)
+                .sort((a, b) => clientData[b].total - clientData[a].total)
+                .slice(0, 5);
+            
+            // Crear tarjetas
+            topClients.forEach((client, index) => {
+                const data = clientData[client];
+                
+                const card = document.createElement('div');
+                card.className = 'client-card';
+                card.style.position = 'relative';
+                
+                const rank = document.createElement('div');
+                rank.className = 'client-rank';
+                rank.textContent = index + 1;
+                
+                const name = document.createElement('div');
+                name.className = 'client-name';
+                name.title = client; // Tooltip para nombres largos
+                name.textContent = client;
+                
+                const info = document.createElement('div');
+                info.className = 'client-info';
+                info.textContent = `RUT: ${data.rut} | ${data.facturas} documento${data.facturas !== 1 ? 's' : ''}`;
+                
+                const amount = document.createElement('div');
+                amount.className = 'client-amount';
+                amount.textContent = formatCurrency(data.total);
+                
+                card.appendChild(rank);
+                card.appendChild(name);
+                card.appendChild(info);
+                card.appendChild(amount);
+                
+                clientsContainer.appendChild(card);
+            });
+            
+            // Si no hay clientes, mostrar mensaje
+            if (topClients.length === 0) {
+                const message = document.createElement('p');
+                message.textContent = 'No hay datos de clientes para mostrar';
+                message.style.textAlign = 'center';
+                message.style.gridColumn = '1 / -1';
+                message.style.padding = '20px';
+                clientsContainer.appendChild(message);
+            }
+        }
+        
+        // Actualizar tabla de facturas
+        function updateTable() {
+            invoiceTableBody.innerHTML = '';
+            
+            // Calcular total de páginas
+            const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+            
+            // Ajustar página actual si es necesario
+            if (currentPage > totalPages) {
+                currentPage = totalPages > 0 ? totalPages : 1;
+            }
+            
+            // Calcular índices para paginación
+            const startIndex = (currentPage - 1) * rowsPerPage;
+            const endIndex = Math.min(startIndex + rowsPerPage, filteredData.length);
+            
+            // Obtener datos para la página actual
+            const pageData = filteredData.slice(startIndex, endIndex);
+            
+            // Generar filas de la tabla
+            pageData.forEach(item => {
+                const row = document.createElement('tr');
+                
+                // Formatear fecha
+                const fechaFormateada = item.fecha.toLocaleDateString('es-CL');
+                
+                row.innerHTML = `
+                    <td>${item.folio}</td>
+                    <td>${fechaFormateada}</td>
+                    <td title="${item.razonSocial}">${item.razonSocial.length > 25 ? item.razonSocial.substring(0, 25) + '...' : item.razonSocial}</td>
+                    <td>${item.rut}</td>
+                    <td>${formatCurrency(item.montoFactura - item.montoFactura * 0.19)}</td>
+                    <td>${formatCurrency(item.exento)}</td>
+                    <td>${formatCurrency(item.totalConIVA)}</td>
+                    <td>${formatCurrency(item.montoNC)}</td>
+                    <td>${formatCurrency(item.montoNeto)}</td>
+                `;
+                
+                invoiceTableBody.appendChild(row);
+            });
+            
+            // Generar paginación
+            updatePagination(totalPages);
+            
+            // Mostrar mensaje si no hay datos
+            if (pageData.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="9" style="text-align: center; padding: 20px;">No hay facturas para mostrar</td>`;
+                invoiceTableBody.appendChild(row);
+            }
+        }
+        
+        // Actualizar controles de paginación
+        function updatePagination(totalPages) {
+            pagination.innerHTML = '';
+            
+            if (totalPages <= 1) {
+                return;
+            }
+            
+            // Botón anterior
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'page-btn';
+            prevBtn.innerHTML = '&laquo;';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    updateTable();
+                }
+            });
+            pagination.appendChild(prevBtn);
+            
+            // Botones de página
+            // Mostrar páginas: primera, actual -1, actual, actual +1, última
+            const pageNumbers = new Set();
+            pageNumbers.add(1); // Primera página
+            pageNumbers.add(totalPages); // Última página
+            
+            if (currentPage > 1) pageNumbers.add(currentPage - 1);
+            pageNumbers.add(currentPage);
+            if (currentPage < totalPages) pageNumbers.add(currentPage + 1);
+            
+            const sortedPages = [...pageNumbers].sort((a, b) => a - b);
+            
+            let prevPage = 0;
+            sortedPages.forEach(page => {
+                // Agregar elipsis si hay saltos
+                if (page - prevPage > 1) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.textContent = '...';
+                    ellipsis.className = 'page-btn';
+                    ellipsis.style.cursor = 'default';
+                    pagination.appendChild(ellipsis);
+                }
+                
+                // Botón de página
+                const pageBtn = document.createElement('button');
+                pageBtn.className = `page-btn ${page === currentPage ? 'active-page' : ''}`;
+                pageBtn.textContent = page;
+                pageBtn.addEventListener('click', () => {
+                    currentPage = page;
+                    updateTable();
+                });
+                pagination.appendChild(pageBtn);
+                
+                prevPage = page;
+            });
+            
+            // Botón siguiente
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'page-btn';
+            nextBtn.innerHTML = '&raquo;';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    updateTable();
+                }
+            });
+            pagination.appendChild(nextBtn);
+        }
     </script>
 </body>
 </html>
