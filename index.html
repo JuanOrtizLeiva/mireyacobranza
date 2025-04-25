@@ -478,7 +478,7 @@
 
         .clients-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
         }
 
@@ -720,6 +720,10 @@
             .chart-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .clients-container {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
         }
 
         @media (max-width: 768px) {
@@ -859,7 +863,7 @@
                     <div id="total-facturado" class="stat-value">$0</div>
                     <div id="total-facturado-subtitle" class="stat-subtitle">0 documentos</div>
                     <div id="trend-facturado" class="stat-trend trend-up">
-                        <i class="fas fa-arrow-up trend-icon"></i> 0% vs. período anterior
+                        <i class="fas fa-arrow-up trend-icon"></i> 0% vs. año anterior
                     </div>
                     <i class="fas fa-file-invoice-dollar stat-icon"></i>
                 </div>
@@ -868,7 +872,7 @@
                     <div id="total-nc" class="stat-value">$0</div>
                     <div id="total-nc-subtitle" class="stat-subtitle">0 documentos</div>
                     <div id="trend-nc" class="stat-trend trend-down">
-                        <i class="fas fa-arrow-down trend-icon"></i> 0% vs. período anterior
+                        <i class="fas fa-arrow-down trend-icon"></i> 0% vs. año anterior
                     </div>
                     <i class="fas fa-file-medical stat-icon"></i>
                 </div>
@@ -877,7 +881,7 @@
                     <div id="total-neto" class="stat-value">$0</div>
                     <div id="total-neto-subtitle" class="stat-subtitle">0% del total facturado</div>
                     <div id="trend-neto" class="stat-trend trend-up">
-                        <i class="fas fa-arrow-up trend-icon"></i> 0% vs. período anterior
+                        <i class="fas fa-arrow-up trend-icon"></i> 0% vs. año anterior
                     </div>
                     <i class="fas fa-chart-line stat-icon"></i>
                 </div>
@@ -901,7 +905,7 @@
                     <div class="chart-header">
                         <div>
                             <h3 class="chart-title">Comparativo de Ventas Anuales</h3>
-                            <p class="chart-subtitle">Visualización de facturación, notas de crédito y ventas netas por año</p>
+                            <p class="chart-subtitle">Visualización de ventas netas por año</p>
                         </div>
                     </div>
                     <div class="chart-container">
@@ -919,7 +923,7 @@
                     <div class="chart-header">
                         <div>
                             <h3 class="chart-title">Evolución de Ventas por Período</h3>
-                            <p class="chart-subtitle">Tendencias de facturación y notas de crédito a lo largo del tiempo</p>
+                            <p class="chart-subtitle">Tendencias de ventas a lo largo del tiempo</p>
                         </div>
                     </div>
                     <div class="chart-container">
@@ -969,7 +973,7 @@
             <!-- Top Clientes -->
             <div class="section">
                 <div class="section-header">
-                    <h2 class="section-title"><i class="fas fa-users"></i> Top 5 Clientes</h2>
+                    <h2 class="section-title"><i class="fas fa-users"></i> Top 3 Clientes</h2>
                 </div>
                 <div id="clients-container" class="clients-container"></div>
             </div>
@@ -1200,15 +1204,17 @@
                     fechaObj = new Date();
                 }
                 
-                // Obtener RUT del campo específico o extraerlo de la razón social
-                let rut = item['Rut_x0020_cliente'] || 'N/A';
+                // Obtener RUT directamente del campo específico
+                let rut = item['Rut_x0020_cliente'] || '';
                 
-                // Si el RUT sigue siendo N/A, intentar extraerlo de la razón social (formato: "NOMBRE RUT:12345678-9")
-                if (rut === 'N/A') {
+                // Si no hay RUT, intentar extraerlo de la razón social
+                if (!rut) {
                     const razonSocial = item['Razon_x0020_Social'] || '';
                     const rutMatch = razonSocial.match(/RUT:(\d+-[0-9kK])/i);
                     if (rutMatch) {
                         rut = rutMatch[1];
+                    } else {
+                        rut = 'N/A';
                     }
                 }
                 
@@ -1367,13 +1373,13 @@
             
             if (value > 0) {
                 element.className = 'stat-trend trend-up';
-                element.innerHTML = `<i class="fas fa-arrow-up trend-icon"></i> ${formatPercent(value)} vs. período anterior`;
+                element.innerHTML = `<i class="fas fa-arrow-up trend-icon"></i> ${formatPercent(value)} vs. año anterior`;
             } else if (value < 0) {
                 element.className = 'stat-trend trend-down';
-                element.innerHTML = `<i class="fas fa-arrow-down trend-icon"></i> ${formatPercent(Math.abs(value))} vs. período anterior`;
+                element.innerHTML = `<i class="fas fa-arrow-down trend-icon"></i> ${formatPercent(Math.abs(value))} vs. año anterior`;
             } else {
                 element.className = 'stat-trend trend-neutral';
-                element.innerHTML = `<i class="fas fa-equals trend-icon"></i> Sin cambios vs. período anterior`;
+                element.innerHTML = `<i class="fas fa-equals trend-icon"></i> Sin cambios vs. año anterior`;
             }
         }
         
@@ -1388,25 +1394,14 @@
                 
                 if (!salesByPeriod[period]) {
                     salesByPeriod[period] = {
-                        facturas: 0,
-                        nc: 0,
-                        neto: 0,
+                        ventas: 0,
                         count: 0
                     };
                 }
                 
-                if (item.esNotaCredito) {
-                    salesByPeriod[period].nc += item.montoFactura;
-                } else {
-                    salesByPeriod[period].facturas += item.montoFactura;
-                }
-                
+                // Como la consulta SQL ya descuenta las NC, solo sumamos montoNeto
+                salesByPeriod[period].ventas += item.montoNeto;
                 salesByPeriod[period].count++;
-            });
-            
-            // Calcular netos
-            Object.keys(salesByPeriod).forEach(period => {
-                salesByPeriod[period].neto = salesByPeriod[period].facturas - salesByPeriod[period].nc;
             });
             
             // Ordenar periodos
@@ -1419,9 +1414,7 @@
                 return `${monthNames[parseInt(month) - 1]} ${year}`;
             });
             
-            const facturasData = sortedPeriods.map(period => salesByPeriod[period].facturas);
-            const ncData = sortedPeriods.map(period => salesByPeriod[period].nc);
-            const netoData = sortedPeriods.map(period => salesByPeriod[period].neto);
+            const ventasData = sortedPeriods.map(period => salesByPeriod[period].ventas);
             
             // Crear gráfico de evolución de ventas
             const salesCtx = document.getElementById('salesChart').getContext('2d');
@@ -1431,11 +1424,7 @@
             }
             
             // Encontrar el valor máximo para escalar el eje Y adecuadamente
-            const maxValue = Math.max(
-                ...facturasData,
-                ...ncData,
-                ...netoData
-            );
+            const maxValue = Math.max(...ventasData);
             
             // Calcular un límite superior adecuado (redondeado hacia arriba)
             const yAxisMax = Math.ceil(maxValue * 1.1 / 1000000) * 1000000;
@@ -1446,35 +1435,13 @@
                     labels: chartLabels,
                     datasets: [
                         {
-                            label: 'Ventas Brutas',
-                            data: facturasData,
-                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 2,
-                            tension: 0.3,
-                            fill: false,
-                            pointRadius: 4,
-                            pointHoverRadius: 6
-                        },
-                        {
-                            label: 'Notas de Crédito',
-                            data: ncData,
-                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            borderWidth: 2,
-                            tension: 0.3,
-                            fill: false,
-                            pointRadius: 4,
-                            pointHoverRadius: 6
-                        },
-                        {
                             label: 'Ventas Netas',
-                            data: netoData,
+                            data: ventasData,
                             backgroundColor: 'rgba(75, 192, 192, 0.2)',
                             borderColor: 'rgba(75, 192, 192, 1)',
                             borderWidth: 3,
                             tension: 0.3,
-                            fill: false,
+                            fill: true,
                             pointRadius: 4,
                             pointHoverRadius: 6
                         }
@@ -1524,14 +1491,12 @@
             
             // Calcular totales por cliente
             const clientTotals = {};
-            filteredData
-                .filter(item => !item.esNotaCredito) // Solo facturas para la distribución
-                .forEach(item => {
-                    if (!clientTotals[item.razonSocial]) {
-                        clientTotals[item.razonSocial] = 0;
-                    }
-                    clientTotals[item.razonSocial] += item.montoNeto;
-                });
+            filteredData.forEach(item => {
+                if (!clientTotals[item.razonSocial]) {
+                    clientTotals[item.razonSocial] = 0;
+                }
+                clientTotals[item.razonSocial] += item.montoNeto;
+            });
             
             // Ordenar clientes por monto total (de mayor a menor)
             const sortedClients = Object.keys(clientTotals)
@@ -1611,25 +1576,14 @@
                 
                 if (!yearlyData[year]) {
                     yearlyData[year] = {
-                        facturas: 0,
-                        nc: 0,
-                        neto: 0,
+                        ventas: 0,
                         count: 0
                     };
                 }
                 
-                if (item.esNotaCredito) {
-                    yearlyData[year].nc += item.montoFactura;
-                } else {
-                    yearlyData[year].facturas += item.montoFactura;
-                }
-                
+                // Solo sumamos montoNeto ya que la consulta ya ha descontado las NC
+                yearlyData[year].ventas += item.montoNeto;
                 yearlyData[year].count++;
-            });
-            
-            // Calcular netos
-            Object.keys(yearlyData).forEach(year => {
-                yearlyData[year].neto = yearlyData[year].facturas - yearlyData[year].nc;
             });
             
             // Ordenar años
@@ -1637,16 +1591,10 @@
             
             // Preparar datos para el gráfico
             const yearLabels = sortedYears;
-            const yearlyFacturas = sortedYears.map(year => yearlyData[year].facturas);
-            const yearlyNC = sortedYears.map(year => yearlyData[year].nc);
-            const yearlyNeto = sortedYears.map(year => yearlyData[year].neto);
+            const yearlyVentas = sortedYears.map(year => yearlyData[year].ventas);
             
             // Encontrar el valor máximo para escalar el eje Y adecuadamente
-            const maxValue = Math.max(
-                ...yearlyFacturas,
-                ...yearlyNC,
-                ...yearlyNeto
-            );
+            const maxValue = Math.max(...yearlyVentas);
             
             // Calcular un límite superior adecuado (redondeado hacia arriba)
             const yAxisMax = Math.ceil(maxValue * 1.1 / 1000000) * 1000000;
@@ -1664,24 +1612,8 @@
                     labels: yearLabels,
                     datasets: [
                         {
-                            label: 'Ventas Brutas',
-                            data: yearlyFacturas,
-                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1,
-                            borderRadius: 4
-                        },
-                        {
-                            label: 'Notas de Crédito',
-                            data: yearlyNC,
-                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            borderWidth: 1,
-                            borderRadius: 4
-                        },
-                        {
                             label: 'Ventas Netas',
-                            data: yearlyNeto,
+                            data: yearlyVentas,
                             backgroundColor: 'rgba(75, 192, 192, 0.7)',
                             borderColor: 'rgba(75, 192, 192, 1)',
                             borderWidth: 1,
@@ -1745,16 +1677,12 @@
                 
                 if (!yearlyData[year].monthlyData[month]) {
                     yearlyData[year].monthlyData[month] = {
-                        facturas: 0,
-                        nc: 0
+                        ventas: 0
                     };
                 }
                 
-                if (item.esNotaCredito) {
-                    yearlyData[year].monthlyData[month].nc += item.montoFactura;
-                } else {
-                    yearlyData[year].monthlyData[month].facturas += item.montoFactura;
-                }
+                // Solo sumamos montoNeto ya que la consulta ya ha descontado las NC
+                yearlyData[year].monthlyData[month].ventas += item.montoNeto;
                 
                 yearlyData[year].periods.add(period);
             });
@@ -1763,12 +1691,11 @@
             Object.keys(yearlyData).forEach(year => {
                 const yearData = yearlyData[year];
                 
-                // Calcular total neto por año
+                // Calcular total por año
                 let yearTotal = 0;
                 Object.keys(yearData.monthlyData).forEach(month => {
                     const monthData = yearData.monthlyData[month];
-                    const monthNet = monthData.facturas - monthData.nc;
-                    yearTotal += monthNet;
+                    yearTotal += monthData.ventas;
                 });
                 
                 yearData.total = yearTotal;
@@ -1880,12 +1807,10 @@
             const ventasPorDia = Array(7).fill(0);
             const countPorDia = Array(7).fill(0);
             
-            filteredData
-                .filter(item => !item.esNotaCredito) // Solo facturas
-                .forEach(item => {
-                    ventasPorDia[item.diaSemana] += item.montoNeto;
-                    countPorDia[item.diaSemana]++;
-                });
+            filteredData.forEach(item => {
+                ventasPorDia[item.diaSemana] += item.montoNeto;
+                countPorDia[item.diaSemana]++;
+            });
             
             // Encontrar el día con mayor venta
             let maxVentasDia = 0;
@@ -1910,42 +1835,21 @@
                 metricsContainer.appendChild(metricaDiaMasVentas);
             }
             
-            // 2. Factor de Notas de Crédito
-            const totalFacturado = filteredData
-                .filter(item => !item.esNotaCredito)
-                .reduce((sum, item) => sum + item.montoFactura, 0);
-                
-            const totalNC = filteredData
-                .filter(item => item.esNotaCredito)
-                .reduce((sum, item) => sum + item.montoFactura, 0);
-                
-            const factorNC = totalFacturado > 0 ? (totalNC / totalFacturado * 100) : 0;
-            
-            const metricaFactorNC = document.createElement('div');
-            metricaFactorNC.className = 'analysis-metric';
-            metricaFactorNC.innerHTML = `
-                <div class="metric-title">Factor de Notas de Crédito</div>
-                <div class="metric-value">${formatPercent(factorNC)}</div>
-                <div class="metric-info">del total facturado</div>
-            `;
-            metricsContainer.appendChild(metricaFactorNC);
-            
-            // 3. Promedio por Factura
-            const facturas = filteredData.filter(item => !item.esNotaCredito);
-            const totalFacturas = facturas.length;
-            const promedioFactura = totalFacturas > 0 ? 
-                facturas.reduce((sum, item) => sum + item.montoFactura, 0) / totalFacturas : 0;
+            // 2. Promedio por Factura
+            const totalDocs = filteredData.length;
+            const promedioFactura = totalDocs > 0 ? 
+                filteredData.reduce((sum, item) => sum + item.montoNeto, 0) / totalDocs : 0;
             
             const metricaPromedioFactura = document.createElement('div');
             metricaPromedioFactura.className = 'analysis-metric';
             metricaPromedioFactura.innerHTML = `
-                <div class="metric-title">Promedio por Factura</div>
+                <div class="metric-title">Promedio por Documento</div>
                 <div class="metric-value">${formatCurrency(promedioFactura)}</div>
-                <div class="metric-info">basado en ${totalFacturas} factura(s)</div>
+                <div class="metric-info">basado en ${totalDocs} documento(s)</div>
             `;
             metricsContainer.appendChild(metricaPromedioFactura);
             
-            // 4. Variación Anual (si hay varios años)
+            // 3. Variación Anual (si hay varios años)
             const anios = [...new Set(filteredData.map(item => item.anio))].sort();
             
             if (anios.length > 1) {
@@ -1954,14 +1858,10 @@
                 
                 anios.forEach(anio => {
                     const ventasAnio = filteredData
-                        .filter(item => item.anio === anio && !item.esNotaCredito)
-                        .reduce((sum, item) => sum + item.montoFactura, 0);
+                        .filter(item => item.anio === anio)
+                        .reduce((sum, item) => sum + item.montoNeto, 0);
                         
-                    const ncAnio = filteredData
-                        .filter(item => item.anio === anio && item.esNotaCredito)
-                        .reduce((sum, item) => sum + item.montoFactura, 0);
-                        
-                    ventasPorAnio[anio] = ventasAnio - ncAnio;
+                    ventasPorAnio[anio] = ventasAnio;
                 });
                 
                 // Calcular variación entre último y penúltimo año
@@ -1987,19 +1887,17 @@
                 }
             }
             
-            // 5. Concentración en Clientes Top
+            // 4. Concentración en Clientes Top 3 con nombres
             if (filteredData.length > 0) {
                 // Calcular ventas por cliente
                 const ventasPorCliente = {};
                 
-                filteredData
-                    .filter(item => !item.esNotaCredito)
-                    .forEach(item => {
-                        if (!ventasPorCliente[item.razonSocial]) {
-                            ventasPorCliente[item.razonSocial] = 0;
-                        }
-                        ventasPorCliente[item.razonSocial] += item.montoNeto;
-                    });
+                filteredData.forEach(item => {
+                    if (!ventasPorCliente[item.razonSocial]) {
+                        ventasPorCliente[item.razonSocial] = 0;
+                    }
+                    ventasPorCliente[item.razonSocial] += item.montoNeto;
+                });
                 
                 // Ordenar clientes por monto
                 const clientesOrdenados = Object.keys(ventasPorCliente)
@@ -2013,12 +1911,18 @@
                 const totalVentas = Object.values(ventasPorCliente).reduce((sum, venta) => sum + venta, 0);
                 const concentracionTop3 = totalVentas > 0 ? (ventasTop3 / totalVentas * 100) : 0;
                 
+                // Crear nombres formateados para mostrar
+                const nombresTop3 = top3Clientes.map((cliente, index) => {
+                    const nombreCorto = cliente.length > 20 ? cliente.substring(0, 20) + '...' : cliente;
+                    return `${index + 1}. ${nombreCorto}`;
+                }).join('<br>');
+                
                 const metricaConcentracion = document.createElement('div');
                 metricaConcentracion.className = 'analysis-metric';
                 metricaConcentracion.innerHTML = `
                     <div class="metric-title">Concentración Top 3</div>
                     <div class="metric-value">${formatPercent(concentracionTop3)}</div>
-                    <div class="metric-info">de ventas en 3 principales clientes</div>
+                    <div class="metric-info">de ventas en 3 principales clientes:<br>${nombresTop3}</div>
                 `;
                 metricsContainer.appendChild(metricaConcentracion);
             }
@@ -2031,25 +1935,23 @@
             
             // Agrupar por cliente
             const clientData = {};
-            filteredData
-                .filter(item => !item.esNotaCredito) // Solo facturas para el top clientes
-                .forEach(item => {
-                    if (!clientData[item.razonSocial]) {
-                        clientData[item.razonSocial] = {
-                            total: 0,
-                            facturas: 0,
-                            rut: item.rut
-                        };
-                    }
-                    
-                    clientData[item.razonSocial].total += item.montoNeto;
-                    clientData[item.razonSocial].facturas++;
-                });
+            filteredData.forEach(item => {
+                if (!clientData[item.razonSocial]) {
+                    clientData[item.razonSocial] = {
+                        total: 0,
+                        facturas: 0,
+                        rut: item.rut
+                    };
+                }
+                
+                clientData[item.razonSocial].total += item.montoNeto;
+                clientData[item.razonSocial].facturas++;
+            });
             
-            // Ordenar y obtener top 5
+            // Ordenar y obtener top 3
             const topClients = Object.keys(clientData)
                 .sort((a, b) => clientData[b].total - clientData[a].total)
-                .slice(0, 5);
+                .slice(0, 3);
             
             // Calcular el total para los porcentajes
             const totalVentas = topClients.reduce((sum, client) => sum + clientData[client].total, 0);
