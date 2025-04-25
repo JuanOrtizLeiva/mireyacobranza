@@ -162,7 +162,7 @@
         }
 
         .hidden {
-            display: none;
+            display: none !important;
         }
 
         /* Dashboard Styles */
@@ -489,6 +489,7 @@
             box-shadow: var(--shadow);
             position: relative;
             transition: var(--transition);
+            max-width: 100%;
         }
         
         .client-card:hover {
@@ -504,6 +505,7 @@
             text-overflow: ellipsis;
             color: var(--primary-dark);
             padding-right: 30px;
+            max-width: 100%;
         }
 
         .client-info {
@@ -601,6 +603,17 @@
             position: sticky;
             top: 0;
             white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .data-table th:hover {
+            background-color: rgba(10, 61, 98, 0.1);
+        }
+        
+        .data-table th i {
+            margin-left: 5px;
+            font-size: 12px;
         }
 
         .data-table tbody tr {
@@ -715,6 +728,19 @@
             margin: 0 auto;
         }
 
+        /* Sort Indicator */
+        .sort-icon {
+            margin-left: 5px;
+        }
+        
+        .truncate-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+            display: inline-block;
+        }
+
         /* Responsive Design */
         @media (max-width: 992px) {
             .chart-grid {
@@ -778,7 +804,7 @@
                 <i class="fas fa-chart-pie fa-3x"></i>
             </div>
             <div class="login-header">
-                <h2>Sistema Analítico de Facturación2</h2>
+                <h2>Sistema Analítico de Facturación</h2>
                 <p>Analice sus datos financieros con precisión</p>
             </div>
             <form id="login-form">
@@ -922,8 +948,8 @@
                 <div class="chart-card">
                     <div class="chart-header">
                         <div>
-                            <h3 class="chart-title">Evolución de Ventas por Período</h3>
-                            <p class="chart-subtitle">Tendencias de ventas a lo largo del tiempo</p>
+                            <h3 class="chart-title">Evolución de Ventas por Año</h3>
+                            <p class="chart-subtitle">Tendencias de ventas consolidadas por año</p>
                         </div>
                     </div>
                     <div class="chart-container">
@@ -1000,15 +1026,15 @@
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Folio</th>
-                                    <th>Fecha</th>
-                                    <th>Cliente</th>
-                                    <th>RUT</th>
-                                    <th>Monto Neto</th>
-                                    <th>Exento</th>
-                                    <th>Total c/IVA</th>
-                                    <th>Notas Crédito</th>
-                                    <th>Saldo</th>
+                                    <th data-sort="folio">Folio <i class="fas fa-sort"></i></th>
+                                    <th data-sort="fecha">Fecha <i class="fas fa-sort"></i></th>
+                                    <th data-sort="razonSocial">Cliente <i class="fas fa-sort"></i></th>
+                                    <th data-sort="rut">RUT <i class="fas fa-sort"></i></th>
+                                    <th data-sort="montoNetoSinIVA">Monto Neto <i class="fas fa-sort"></i></th>
+                                    <th data-sort="exento">Exento <i class="fas fa-sort"></i></th>
+                                    <th data-sort="totalConIVA">Total c/IVA <i class="fas fa-sort"></i></th>
+                                    <th data-sort="montoNC">Notas Crédito <i class="fas fa-sort"></i></th>
+                                    <th data-sort="montoNeto">Saldo <i class="fas fa-sort"></i></th>
                                 </tr>
                             </thead>
                             <tbody id="invoice-table-body">
@@ -1065,6 +1091,10 @@
         let yearlyComparisonChart;
         let monthlyAverageChart;
         
+        // Variables para ordenamiento
+        let currentSortColumn = 'fecha';
+        let currentSortDirection = 'desc';
+        
         // URL del flujo (mantener la misma)
         const flowUrl = 'https://prod-77.westus.logic.azure.com:443/workflows/1ba29feb037d422bb281c8c8eacc4a04/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=9gjMKfE5XIxBTi-KNXDcatl3NXchpZN6eGq8xDgrM5g'; 
 
@@ -1080,6 +1110,12 @@
         // Formateo de porcentaje
         function formatPercent(value) {
             return `${value.toFixed(1)}%`;
+        }
+        
+        // Función para truncar texto largo
+        function truncateText(text, maxLength = 20) {
+            if (!text) return 'N/A';
+            return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
         }
         
         // Función para mostrar notificación toast
@@ -1128,6 +1164,65 @@
             currentPage = 1;
             updateTable();
         });
+        
+        // Configurar eventos de ordenamiento en encabezados de tabla
+        document.querySelectorAll('.data-table th').forEach(th => {
+            th.addEventListener('click', function() {
+                const column = this.getAttribute('data-sort');
+                if (column) {
+                    if (currentSortColumn === column) {
+                        // Cambiar dirección si es la misma columna
+                        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        // Nueva columna, establecer dirección por defecto
+                        currentSortColumn = column;
+                        currentSortDirection = 'asc';
+                    }
+                    updateSortIcons();
+                    sortData();
+                    updateTable();
+                }
+            });
+        });
+        
+        // Actualizar iconos de ordenamiento
+        function updateSortIcons() {
+            document.querySelectorAll('.data-table th i').forEach(icon => {
+                icon.className = 'fas fa-sort';
+            });
+            
+            const currentHeader = document.querySelector(`.data-table th[data-sort="${currentSortColumn}"]`);
+            if (currentHeader) {
+                const icon = currentHeader.querySelector('i');
+                if (icon) {
+                    icon.className = `fas fa-sort-${currentSortDirection === 'asc' ? 'up' : 'down'}`;
+                }
+            }
+        }
+        
+        // Ordenar datos
+        function sortData() {
+            filteredData.sort((a, b) => {
+                let valueA = a[currentSortColumn];
+                let valueB = b[currentSortColumn];
+                
+                // Manejar diferentes tipos de datos
+                if (currentSortColumn === 'fecha') {
+                    valueA = new Date(valueA).getTime();
+                    valueB = new Date(valueB).getTime();
+                } else if (typeof valueA === 'string') {
+                    valueA = valueA.toLowerCase();
+                    valueB = valueB.toLowerCase();
+                }
+                
+                // Comparación basada en la dirección
+                if (currentSortDirection === 'asc') {
+                    return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
+                } else {
+                    return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
+                }
+            });
+        }
         
         // Función para reiniciar filtros
         function resetFilters() {
@@ -1288,7 +1383,10 @@
                 if (client) {  // Asegurarse de que no sea vacío
                     const option = document.createElement('option');
                     option.value = client;
-                    option.textContent = client.length > 30 ? client.substring(0, 30) + '...' : client;
+                    // Truncar nombres largos
+                    option.textContent = truncateText(client, 40);
+                    // Agregar tooltip para ver nombre completo
+                    option.title = client;
                     clientFilter.appendChild(option);
                 }
             });
@@ -1306,6 +1404,9 @@
                        (selectedMonth === 'all' || item.mes === selectedMonth) &&
                        (selectedClient === 'all' || item.razonSocial === selectedClient);
             });
+            
+            // Aplicar ordenamiento actual
+            sortData();
             
             // Resetear a primera página
             currentPage = 1;
@@ -1383,38 +1484,32 @@
             }
         }
         
-        // Actualizar gráfico de evolución de ventas
+        // Actualizar gráfico de evolución de ventas - AGRUPADO POR AÑO
         function updateCharts() {
-            // Preparar datos para gráfico de evolución
-            // Agrupar por período (año-mes)
-            const salesByPeriod = {};
+            // Agrupar ventas por año (en lugar de por mes-año)
+            const salesByYear = {};
             
             filteredData.forEach(item => {
-                const period = item.periodo;
+                const year = item.anio;
                 
-                if (!salesByPeriod[period]) {
-                    salesByPeriod[period] = {
+                if (!salesByYear[year]) {
+                    salesByYear[year] = {
                         ventas: 0,
                         count: 0
                     };
                 }
                 
-                // Como la consulta SQL ya descuenta las NC, solo sumamos montoNeto
-                salesByPeriod[period].ventas += item.montoNeto;
-                salesByPeriod[period].count++;
+                // Solo sumamos montoNeto ya que la consulta ya descuenta las NC
+                salesByYear[year].ventas += item.montoNeto;
+                salesByYear[year].count++;
             });
             
-            // Ordenar periodos
-            const sortedPeriods = Object.keys(salesByPeriod).sort();
+            // Ordenar años
+            const sortedYears = Object.keys(salesByYear).sort();
             
-            // Formatear etiquetas para el gráfico
-            const chartLabels = sortedPeriods.map(period => {
-                const [year, month] = period.split('-');
-                const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-                return `${monthNames[parseInt(month) - 1]} ${year}`;
-            });
-            
-            const ventasData = sortedPeriods.map(period => salesByPeriod[period].ventas);
+            // Preparar datos para el gráfico
+            const chartLabels = sortedYears;
+            const ventasData = sortedYears.map(year => salesByYear[year].ventas);
             
             // Crear gráfico de evolución de ventas
             const salesCtx = document.getElementById('salesChart').getContext('2d');
@@ -1442,8 +1537,8 @@
                             borderWidth: 3,
                             tension: 0.3,
                             fill: true,
-                            pointRadius: 4,
-                            pointHoverRadius: 6
+                            pointRadius: 6,
+                            pointHoverRadius: 8
                         }
                     ]
                 },
@@ -1506,7 +1601,7 @@
             const topClients = sortedClients.slice(0, 5);
             const otherClients = sortedClients.slice(5);
             
-            const pieLabels = [...topClients];
+            const pieLabels = topClients.map(client => truncateText(client, 15));
             const pieData = topClients.map(client => clientTotals[client]);
             
             // Agregar "Otros" si hay más clientes
@@ -1533,7 +1628,7 @@
             distributionChart = new Chart(distributionCtx, {
                 type: 'pie',
                 data: {
-                    labels: pieLabels.map(label => label.length > 20 ? label.substring(0, 20) + '...' : label),
+                    labels: pieLabels,
                     datasets: [{
                         data: pieData,
                         backgroundColor: pieColors,
@@ -1552,6 +1647,13 @@
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                     const percentage = ((value * 100) / total).toFixed(1);
                                     return `${formatCurrency(value)} (${percentage}%)`;
+                                },
+                                title: function(tooltipItems) {
+                                    const index = tooltipItems[0].dataIndex;
+                                    if (index < topClients.length) {
+                                        return topClients[index]; // Muestra el nombre completo en el tooltip
+                                    }
+                                    return 'Otros';
                                 }
                             }
                         },
@@ -1913,7 +2015,7 @@
                 
                 // Crear nombres formateados para mostrar
                 const nombresTop3 = top3Clientes.map((cliente, index) => {
-                    const nombreCorto = cliente.length > 20 ? cliente.substring(0, 20) + '...' : cliente;
+                    const nombreCorto = truncateText(cliente, 20);
                     return `${index + 1}. ${nombreCorto}`;
                 }).join('<br>');
                 
@@ -1969,10 +2071,13 @@
                 rank.className = 'client-rank';
                 rank.textContent = index + 1;
                 
+                // Truncar nombre para mostrar
+                const truncatedName = truncateText(client, 30);
+                
                 const name = document.createElement('div');
                 name.className = 'client-name';
                 name.title = client; // Tooltip para nombres largos
-                name.textContent = client;
+                name.textContent = truncatedName;
                 
                 const info = document.createElement('div');
                 info.className = 'client-info';
@@ -2048,10 +2153,13 @@
                 // Determinar si es una factura o nota de crédito para formateo visual
                 const isNC = item.esNotaCredito;
                 
+                // Truncar nombre del cliente para mostrar
+                const clienteTruncado = truncateText(item.razonSocial, 30);
+                
                 row.innerHTML = `
                     <td>${item.folio}</td>
                     <td>${fechaFormateada}</td>
-                    <td title="${item.razonSocial}">${item.razonSocial.length > 25 ? item.razonSocial.substring(0, 25) + '...' : item.razonSocial}</td>
+                    <td title="${item.razonSocial}"><span class="truncate-text">${clienteTruncado}</span></td>
                     <td>${item.rut}</td>
                     <td>${formatCurrency(item.montoNetoSinIVA)}</td>
                     <td>${formatCurrency(item.exento)}</td>
@@ -2169,6 +2277,9 @@
             });
             pagination.appendChild(nextBtn);
         }
+        
+        // Inicializar encabezados de tabla ordenables
+        updateSortIcons();
     </script>
 </body>
 </html>
