@@ -3,194 +3,334 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Tributario Chileno</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
+    <title>Dashboard Tributario Profesional</title>
+    <!-- Librerías esenciales -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.0.1/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --accent-color: #e74c3c;
-            --light-color: #ecf0f1;
-            --dark-color: #2c3e50;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
-            --info-color: #3498db;
+            --color-primary: #2563eb;
+            --color-primary-light: #3b82f6;
+            --color-primary-dark: #1d4ed8;
+            --color-secondary: #10b981;
+            --color-accent: #8b5cf6;
+            --color-warning: #f59e0b;
+            --color-danger: #ef4444;
+            --color-background: #f8fafc;
+            --color-card: #ffffff;
+            --color-text: #1e293b;
+            --color-text-light: #64748b;
+            --color-border: #e2e8f0;
+            
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            
+            --radius-sm: 0.25rem;
+            --radius: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
         }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7fa;
-            color: var(--dark-color);
+        
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
-
-        .dashboard-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-text);
+            line-height: 1.5;
+            font-size: 0.95rem;
+            padding-bottom: 2rem;
         }
-
-        .header {
-            background-color: var(--primary-color);
+        
+        .container-fluid {
+            max-width: 1600px;
+            padding: 0 1.5rem;
+        }
+        
+        /* Header */
+        .app-header {
+            background: linear-gradient(to right, var(--color-primary-dark), var(--color-primary));
             color: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
         }
-
+        
+        .app-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .app-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        /* Card Styles */
         .card {
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+            background-color: var(--color-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
             border: none;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
         }
-
+        
         .card-header {
-            background-color: var(--secondary-color);
+            background: linear-gradient(to right, var(--color-primary-dark), var(--color-primary));
             color: white;
-            border-radius: 10px 10px 0 0 !important;
-            padding: 12px 15px;
             font-weight: 600;
+            padding: 1rem 1.25rem;
+            border-bottom: none;
         }
-
+        
+        .card-body {
+            padding: 1.25rem;
+        }
+        
+        /* Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .metric-card {
+            background-color: var(--color-card);
+            padding: 1.25rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--color-primary);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 120px;
+        }
+        
+        .metric-card.negative {
+            border-left-color: var(--color-danger);
+        }
+        
+        .metric-title {
+            font-size: 0.875rem;
+            color: var(--color-text-light);
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+        
+        .metric-value.negative {
+            color: var(--color-danger);
+        }
+        
+        .metric-delta {
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+        
+        .delta-up {
+            color: var(--color-secondary);
+        }
+        
+        .delta-down {
+            color: var(--color-danger);
+        }
+        
+        /* Chart containers */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
         .chart-container {
             position: relative;
-            height: 350px;
-            margin: 20px 0;
+            height: 300px;
+            background-color: var(--color-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.25rem;
         }
-
-        .filters-card {
+        
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--color-text);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chart-subtitle {
+            font-size: 0.75rem;
+            color: var(--color-text-light);
+            font-weight: normal;
+        }
+        
+        /* Filtros */
+        .filters-container {
+            background-color: #f1f5f9;
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .filter-label {
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--color-text);
+            white-space: nowrap;
+        }
+        
+        .filter-select {
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--color-border);
             background-color: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 0.875rem;
+            min-width: 8rem;
         }
-
-        .summary-card {
-            text-align: center;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
+        
+        select[multiple] {
+            height: 6rem;
         }
-
-        .summary-card h3 {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
+        
+        /* Botones */
+        .btn {
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            transition: all 0.2s;
         }
-
-        .summary-card p {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin: 0;
+        
+        .btn-primary {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
         }
-
-        .total-facturado {
-            background-color: rgba(52, 152, 219, 0.1);
-            border-left: 4px solid var(--secondary-color);
+        
+        .btn-primary:hover {
+            background-color: var(--color-primary-dark);
+            border-color: var(--color-primary-dark);
         }
-
-        .total-neto {
-            background-color: rgba(46, 204, 113, 0.1);
-            border-left: 4px solid var(--success-color);
+        
+        .btn-success {
+            background-color: var(--color-secondary);
+            border-color: var(--color-secondary);
         }
-
-        .ventas-brutas {
-            background-color: rgba(155, 89, 182, 0.1);
-            border-left: 4px solid #9b59b6;
+        
+        .btn-success:hover {
+            background-color: #0ea271;
+            border-color: #0ea271;
         }
-
-        .ventas-netas {
-            background-color: rgba(230, 126, 34, 0.1);
-            border-left: 4px solid #e67e22;
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: auto;
         }
-
-        .notas-credito {
-            background-color: rgba(231, 76, 60, 0.1);
-            border-left: 4px solid var(--accent-color);
+        
+        /* Tablas */
+        .table-container {
+            overflow-x: auto;
+            background-color: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
         }
-
+        
         table {
             width: 100%;
             border-collapse: collapse;
         }
-
+        
         th {
-            background-color: var(--light-color);
-            color: var(--dark-color);
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--color-text-light);
+            background-color: #f1f5f9;
             position: sticky;
             top: 0;
             z-index: 10;
-            padding: 12px 8px;
-            text-align: center;
         }
-
+        
         td {
-            padding: 8px;
-            text-align: center;
-            vertical-align: middle;
+            padding: 0.75rem 1rem;
+            border-top: 1px solid var(--color-border);
+            font-size: 0.875rem;
         }
-
-        tr:nth-child(even) {
-            background-color: rgba(236, 240, 241, 0.5);
+        
+        tbody tr:hover {
+            background-color: #f8fafc;
         }
-
-        tr:hover {
-            background-color: rgba(52, 152, 219, 0.1);
+        
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
         }
-
-        .table-responsive {
-            max-height: 500px;
-            overflow-y: auto;
+        
+        /* Path input */
+        .path-input {
+            padding: 0.75rem 1rem;
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius);
+            background-color: white;
+            margin-bottom: 1.5rem;
+            transition: all 0.2s;
         }
-
-        select, input {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+        
+        .path-input:hover, .path-input:focus-within {
+            border-color: var(--color-primary);
+        }
+        
+        .path-input input {
             width: 100%;
-            margin-bottom: 10px;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
         }
-
-        select[multiple] {
-            height: 120px;
-        }
-
-        button {
-            padding: 8px 15px;
-            background-color: var(--secondary-color);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        .btn-export {
-            background-color: var(--success-color);
-        }
-
-        .btn-export:hover {
-            background-color: #219653;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .loading {
+        
+        /* Loading */
+        .loading-container {
             position: fixed;
             top: 0;
             left: 0;
@@ -202,441 +342,944 @@
             align-items: center;
             z-index: 1000;
         }
-
+        
         .spinner {
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid var(--secondary-color);
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--color-primary);
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
             animation: spin 1s linear infinite;
         }
-
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        .heatmap-cell {
-            padding: 10px;
-            text-align: center;
-            border: 1px solid #fff;
+        
+        /* Info cards */
+        .info-card {
+            background-color: #f0f9ff;
+            border-left: 4px solid var(--color-primary);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: var(--radius);
+        }
+        
+        .info-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--color-primary-dark);
+        }
+        
+        /* Análisis y segmentación */
+        .analysis-container {
+            background-color: #f8fafc;
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            border: 1px solid var(--color-border);
+            height: 100%;
+        }
+        
+        .analysis-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 0.5rem;
+        }
+        
+        .analysis-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .analysis-item {
+            display: flex;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px dashed var(--color-border);
+        }
+        
+        .analysis-indicator {
+            margin-right: 0.75rem;
+            font-size: 1rem;
+        }
+        
+        /* Cliente cards */
+        .cliente-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+        
+        .cliente-card {
+            background-color: white;
+            border-radius: var(--radius);
+            padding: 1rem;
+            box-shadow: var(--shadow);
+            border-top: 3px solid var(--color-primary);
+        }
+        
+        .cliente-card.premium {
+            border-top-color: var(--color-secondary);
+        }
+        
+        .cliente-nombre {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .cliente-dato {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+        }
+        
+        .cliente-dato-label {
+            color: var(--color-text-light);
+        }
+        
+        /* Segmentación */
+        .segment-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: 1rem;
+        }
+        
+        .segment-tab {
+            padding: 0.75rem 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .segment-tab.active {
+            color: var(--color-primary);
+        }
+        
+        .segment-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--color-primary);
+        }
+        
+        .segment-content {
+            display: none;
+            padding: 1rem 0;
+        }
+        
+        .segment-content.active {
+            display: block;
+        }
+        
+        /* Path warning */
+        .path-warning {
+            background-color: #fff3cd;
+            color: #664d03;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+            border-left: 4px solid #ffcd39;
         }
 
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+            
+            .filters-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .action-buttons {
+                margin-left: 0;
+                margin-top: 0.5rem;
+            }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .text-danger {
+            color: var(--color-danger);
+        }
+        
+        .text-success {
+            color: var(--color-secondary);
+        }
+        
+        .text-warning {
+            color: var(--color-warning);
+        }
+
+        /* Tooltip styles */
         .tooltip-container {
             position: relative;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .tooltip-icon {
+            margin-left: 5px;
+            color: var(--color-text-light);
+            cursor: help;
+            font-size: 0.8rem;
         }
 
         .tooltip-text {
-            position: absolute;
-            width: 200px;
+            visibility: hidden;
             background-color: #333;
-            color: #fff;
+            color: white;
             text-align: center;
             border-radius: 6px;
-            padding: 5px;
-            z-index: 100;
+            padding: 5px 10px;
+            position: absolute;
+            z-index: 1;
             bottom: 125%;
             left: 50%;
-            margin-left: -100px;
+            margin-left: -60px;
             opacity: 0;
             transition: opacity 0.3s;
+            font-size: 0.75rem;
+            width: 200px;
             pointer-events: none;
         }
 
-        .info-icon:hover + .tooltip-text {
+        .tooltip-icon:hover + .tooltip-text {
+            visibility: visible;
             opacity: 1;
-        }
-
-        .info-icon {
-            cursor: help;
-            color: var(--secondary-color);
-            margin-left: 5px;
-            font-size: 0.9rem;
-        }
-
-        .form-label {
-            font-weight: 600;
-            margin-bottom: 5px;
-            display: block;
-        }
-
-        .tab-content {
-            padding: 20px;
-            background-color: white;
-            border-radius: 0 0 10px 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-tabs .nav-link {
-            color: var(--dark-color);
-            background-color: #f1f1f1;
-            margin-right: 5px;
-            border-radius: 10px 10px 0 0;
-        }
-
-        .nav-tabs .nav-link.active {
-            color: white;
-            background-color: var(--secondary-color);
-            border-color: var(--secondary-color);
         }
     </style>
 </head>
 <body>
-    <div class="loading">
-        <div class="spinner"></div>
-    </div>
-
-    <div class="dashboard-container">
-        <div class="header">
-            <h1 class="text-center mb-0">Dashboard Tributario</h1>
-            <p class="text-center mb-0">Sistema de Análisis de Libros Electrónicos de Venta y Compra</p>
+    <header class="app-header">
+        <div class="container-fluid">
+            <h1 class="app-title">Dashboard Tributario Profesional</h1>
+            <p class="app-subtitle">Sistema de Análisis de Libros Electrónicos de Venta y Compra</p>
         </div>
+    </header>
 
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card filters-card">
-                    <div class="card-header">Filtros</div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <label class="form-label">Años</label>
-                                <select id="year-filter" multiple class="form-select">
-                                    <!-- Los años se cargarán dinámicamente -->
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Meses</label>
-                                <select id="month-filter" multiple class="form-select">
-                                    <option value="1">Enero</option>
-                                    <option value="2">Febrero</option>
-                                    <option value="3">Marzo</option>
-                                    <option value="4">Abril</option>
-                                    <option value="5">Mayo</option>
-                                    <option value="6">Junio</option>
-                                    <option value="7">Julio</option>
-                                    <option value="8">Agosto</option>
-                                    <option value="9">Septiembre</option>
-                                    <option value="10">Octubre</option>
-                                    <option value="11">Noviembre</option>
-                                    <option value="12">Diciembre</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Tipo de Documento</label>
-                                <select id="doc-type-filter" multiple class="form-select">
-                                    <!-- Los tipos de documento se cargarán dinámicamente -->
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Acciones</label>
-                                <div class="d-grid gap-2">
-                                    <button id="apply-filters" class="btn btn-primary">Aplicar Filtros</button>
-                                    <button id="reset-filters" class="btn btn-outline-secondary">Reiniciar Filtros</button>
-                                </div>
-                            </div>
-                        </div>
+    <div class="container-fluid">
+        <!-- Configuración Inicial -->
+        <div class="card" id="setup-section">
+            <div class="card-header">Configuración de Datos</div>
+            <div class="card-body">
+                <div class="path-warning">
+                    <strong>Importante:</strong> Este dashboard se actualiza automáticamente con los datos de SQL Server a través de Power Automate.
+                </div>
+                
+                <div class="path-input">
+                    <label for="dataPath" class="form-label fw-semibold">Ruta de los Archivos CSV</label>
+                    <input type="text" id="dataPath" class="form-control" placeholder="C:\Datos\Tributarios\" value="C:\Datos\Tributarios\">
+                    <div class="form-text">Ingrese la ruta donde se encuentran los archivos de ventas y compras</div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <button id="loadDataBtn" class="btn btn-primary">
+                        <i class="bi bi-arrow-clockwise"></i> Cargar Datos
+                    </button>
+                    <div>
+                        <button id="exportExcelBtn" class="btn btn-success me-2" disabled>
+                            <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+                        </button>
+                        <button id="exportPdfBtn" class="btn btn-danger" disabled>
+                            <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="summary-card total-facturado">
-                            <h3>
-                                Total Facturado (Con IVA)
-                                <span class="info-icon">ⓘ</span>
-                                <span class="tooltip-text">Monto total incluyendo IVA de todas las facturas</span>
-                            </h3>
-                            <p id="total-facturado">$0</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="summary-card ventas-brutas">
-                            <h3>
-                                Ventas Brutas
-                                <span class="info-icon">ⓘ</span>
-                                <span class="tooltip-text">Neto + Exento + IVA - Notas de Crédito (incluyendo IVA)</span>
-                            </h3>
-                            <p id="ventas-brutas">$0</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="summary-card ventas-netas">
-                            <h3>
-                                Ventas Netas
-                                <span class="info-icon">ⓘ</span>
-                                <span class="tooltip-text">Neto + Exento - Neto de Notas de Crédito</span>
-                            </h3>
-                            <p id="ventas-netas">$0</p>
-                        </div>
-                    </div>
+        
+        <!-- Dashboard Principal (inicialmente oculto) -->
+        <div id="dashboard-content" class="hidden">
+            <!-- Filtros -->
+            <div class="filters-container">
+                <div class="filter-group">
+                    <label for="yearFilter" class="filter-label">Año:</label>
+                    <select id="yearFilter" class="filter-select" multiple>
+                        <!-- Años se cargarán dinámicamente -->
+                    </select>
                 </div>
-                <div class="row mt-3">
-                    <div class="col-md-4">
-                        <div class="summary-card total-neto">
-                            <h3>
-                                Total Neto + Exento
-                                <span class="info-icon">ⓘ</span>
-                                <span class="tooltip-text">Monto total sin IVA</span>
-                            </h3>
-                            <p id="total-neto">$0</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="summary-card notas-credito">
-                            <h3>
-                                Total Notas de Crédito
-                                <span class="info-icon">ⓘ</span>
-                                <span class="tooltip-text">Monto total de notas de crédito (con IVA)</span>
-                            </h3>
-                            <p id="total-nc">$0</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="d-grid gap-2">
-                            <button id="export-excel" class="btn btn-export mt-4">Exportar a Excel</button>
-                            <button id="export-pdf" class="btn btn-export">Exportar a PDF</button>
-                        </div>
-                    </div>
+                
+                <div class="filter-group">
+                    <label for="monthFilter" class="filter-label">Mes:</label>
+                    <select id="monthFilter" class="filter-select" multiple>
+                        <option value="1">Enero</option>
+                        <option value="2">Febrero</option>
+                        <option value="3">Marzo</option>
+                        <option value="4">Abril</option>
+                        <option value="5">Mayo</option>
+                        <option value="6">Junio</option>
+                        <option value="7">Julio</option>
+                        <option value="8">Agosto</option>
+                        <option value="9">Septiembre</option>
+                        <option value="10">Octubre</option>
+                        <option value="11">Noviembre</option>
+                        <option value="12">Diciembre</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="docTypeFilter" class="filter-label">Tipo de Documento:</label>
+                    <select id="docTypeFilter" class="filter-select" multiple>
+                        <!-- Tipos de documento se cargarán dinámicamente -->
+                    </select>
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="applyFiltersBtn" class="btn btn-primary">
+                        <i class="bi bi-funnel"></i> Aplicar Filtros
+                    </button>
+                    <button id="resetFiltersBtn" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Reiniciar
+                    </button>
                 </div>
             </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <ul class="nav nav-tabs" id="myTab" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="graficos-tab" data-bs-toggle="tab" data-bs-target="#graficos" type="button" role="tab" aria-controls="graficos" aria-selected="true">Gráficos</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="tabla-tab" data-bs-toggle="tab" data-bs-target="#tabla" type="button" role="tab" aria-controls="tabla" aria-selected="false">Tabla de Datos</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="heatmap-tab" data-bs-toggle="tab" data-bs-target="#heatmap" type="button" role="tab" aria-controls="heatmap" aria-selected="false">Mapa de Calor</button>
-                    </li>
-                </ul>
-                <div class="tab-content" id="myTabContent">
-                    <div class="tab-pane fade show active" id="graficos" role="tabpanel" aria-labelledby="graficos-tab">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header">Ventas Mensuales por Año</div>
-                                    <div class="card-body">
-                                        <div class="chart-container">
-                                            <canvas id="monthlyChart"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header">Distribución por Tipo de Documento</div>
-                                    <div class="card-body">
-                                        <div class="chart-container">
-                                            <canvas id="docTypeChart"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+            
+            <div id="dateRangeInfo" class="mb-3 small text-secondary"></div>
+            
+            <!-- Métricas Principales -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div>
+                        <div class="tooltip-container">
+                            <h3 class="metric-title">Total Facturado (Con IVA)</h3>
+                            <span class="tooltip-icon">ⓘ</span>
+                            <span class="tooltip-text">Monto total incluyendo IVA de todas las facturas</span>
                         </div>
-                        <div class="row mt-4">
-                            <div class="col-md-12">
-                                <div class="card">
-                                    <div class="card-header">Tendencia de Ventas vs Notas de Crédito</div>
-                                    <div class="card-body">
-                                        <div class="chart-container">
-                                            <canvas id="trendChart"></canvas>
-                                        </div>
+                        <p id="totalFacturado" class="metric-value">$0</p>
+                    </div>
+                    <div id="deltaFacturado" class="metric-delta"></div>
+                </div>
+                
+                <div class="metric-card">
+                    <div>
+                        <div class="tooltip-container">
+                            <h3 class="metric-title">Total Neto + Exento</h3>
+                            <span class="tooltip-icon">ⓘ</span>
+                            <span class="tooltip-text">Monto total sin IVA</span>
+                        </div>
+                        <p id="totalNeto" class="metric-value">$0</p>
+                    </div>
+                    <div id="deltaNeto" class="metric-delta"></div>
+                </div>
+                
+                <div class="metric-card">
+                    <div>
+                        <div class="tooltip-container">
+                            <h3 class="metric-title">Ventas Brutas</h3>
+                            <span class="tooltip-icon">ⓘ</span>
+                            <span class="tooltip-text">Neto + Exento + IVA - Notas de Crédito (con IVA)</span>
+                        </div>
+                        <p id="ventasBrutas" class="metric-value">$0</p>
+                    </div>
+                    <div id="deltaBrutas" class="metric-delta"></div>
+                </div>
+                
+                <div class="metric-card">
+                    <div>
+                        <div class="tooltip-container">
+                            <h3 class="metric-title">Ventas Netas</h3>
+                            <span class="tooltip-icon">ⓘ</span>
+                            <span class="tooltip-text">Neto + Exento - Neto de Notas de Crédito</span>
+                        </div>
+                        <p id="ventasNetas" class="metric-value">$0</p>
+                    </div>
+                    <div id="deltaNetas" class="metric-delta"></div>
+                </div>
+                
+                <div class="metric-card negative">
+                    <div>
+                        <div class="tooltip-container">
+                            <h3 class="metric-title">Total Notas de Crédito</h3>
+                            <span class="tooltip-icon">ⓘ</span>
+                            <span class="tooltip-text">Monto total de notas de crédito (con IVA)</span>
+                        </div>
+                        <p id="totalNC" class="metric-value negative">$0</p>
+                    </div>
+                    <div id="deltaNC" class="metric-delta"></div>
+                </div>
+            </div>
+            
+            <!-- Navegación por Pestañas -->
+            <ul class="nav nav-tabs" id="analysisTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">Resumen General</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="trends-tab" data-bs-toggle="tab" data-bs-target="#trends" type="button" role="tab" aria-controls="trends" aria-selected="false">Tendencias</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="comparison-tab" data-bs-toggle="tab" data-bs-target="#comparison" type="button" role="tab" aria-controls="comparison" aria-selected="false">Comparativa</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="clients-tab" data-bs-toggle="tab" data-bs-target="#clients" type="button" role="tab" aria-controls="clients" aria-selected="false">Clientes</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab" aria-controls="documents" aria-selected="false">Documentos</button>
+                </li>
+            </ul>
+            
+            <!-- Contenido de Pestañas -->
+            <div class="tab-content mt-4" id="analysisTabsContent">
+                <!-- Pestaña 1: Resumen General -->
+                <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+                    <div class="chart-grid">
+                        <div class="chart-container">
+                            <h3 class="chart-title">
+                                Ventas por Mes (Monto Total)
+                                <span class="chart-subtitle">Evolución mensual</span>
+                            </h3>
+                            <canvas id="ventasPorMesChart"></canvas>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <h3 class="chart-title">
+                                Distribución por Tipo de Documento
+                                <span class="chart-subtitle">Proporción de documentos</span>
+                            </h3>
+                            <canvas id="docTypeChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="card-header">Desglose de Montos</div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="chart-container" style="height: 250px;">
+                                        <canvas id="montoDesglose"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="analysis-container h-100">
+                                        <h3 class="analysis-title">Resumen de Montos</h3>
+                                        <ul id="resumenMontos" class="analysis-list">
+                                            <li class="analysis-item">
+                                                <span class="analysis-indicator">⏳</span>
+                                                <span>Cargando datos...</span>
+                                            </li>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="tab-pane fade" id="tabla" role="tabpanel" aria-labelledby="tabla-tab">
-                        <div class="card">
-                            <div class="card-header">Detalle de Transacciones</div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-hover">
+                </div>
+                
+                <!-- Pestaña 2: Tendencias -->
+                <div class="tab-pane fade" id="trends" role="tabpanel" aria-labelledby="trends-tab">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="chart-container" style="height: 350px;">
+                                <h3 class="chart-title">
+                                    Tendencia de Ventas Diarias
+                                    <span class="chart-subtitle">Evolución diaria con media móvil</span>
+                                </h3>
+                                <canvas id="trendChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="analysis-container h-100">
+                                <h3 class="analysis-title">Análisis de Tendencia</h3>
+                                <ul id="analisisTendencia" class="analysis-list">
+                                    <li class="analysis-item">
+                                        <span class="analysis-indicator">⏳</span>
+                                        <span>Analizando tendencias...</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-grid mt-4">
+                        <div class="chart-container">
+                            <h3 class="chart-title">
+                                Ventas por Día de la Semana
+                                <span class="chart-subtitle">Distribución semanal</span>
+                            </h3>
+                            <canvas id="weekdayChart"></canvas>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <h3 class="chart-title">
+                                Notas de Crédito vs Facturas
+                                <span class="chart-subtitle">Proporción mensual</span>
+                            </h3>
+                            <canvas id="ncVsFacturasChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pestaña 3: Comparativa -->
+                <div class="tab-pane fade" id="comparison" role="tabpanel" aria-labelledby="comparison-tab">
+                    <div class="chart-container" style="height: 400px;">
+                        <h3 class="chart-title">
+                            Comparativa Anual
+                            <span class="chart-subtitle">Ventas por año y mes</span>
+                        </h3>
+                        <canvas id="yearComparisonChart"></canvas>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="card-header">Resumen Anual Comparativo</div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Año</th>
+                                            <th>Ventas Totales</th>
+                                            <th>Docs Emitidos</th>
+                                            <th>Notas Crédito</th>
+                                            <th>Ticket Promedio</th>
+                                            <th>Variación</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="yearSummaryTable">
+                                        <tr>
+                                            <td colspan="6" class="text-center">Cargando datos comparativos...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pestaña 4: Clientes -->
+                <div class="tab-pane fade" id="clients" role="tabpanel" aria-labelledby="clients-tab">
+                    <div class="info-card">
+                        <h4 class="info-title">Segmentación de Clientes ABC</h4>
+                        <p>Utilizando el principio de Pareto (regla 80/20), clasificamos los clientes en tres segmentos:</p>
+                        <ul class="mt-2">
+                            <li><strong>Premium (A):</strong> Clientes VIP que generan aproximadamente el 80% de las ventas.</li>
+                            <li><strong>Regulares (B):</strong> Clientes que representan el siguiente 15% de las ventas.</li>
+                            <li><strong>Ocasionales (C):</strong> Clientes que generan el 5% restante de las ventas.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-7">
+                            <div class="chart-container">
+                                <h3 class="chart-title">
+                                    Ventas por Segmento de Cliente
+                                    <span class="chart-subtitle">Distribución según categoría ABC</span>
+                                </h3>
+                                <canvas id="clientSegmentChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="analysis-container h-100">
+                                <h3 class="analysis-title">Resumen de Segmentación</h3>
+                                <div class="table-container">
+                                    <table class="table">
                                         <thead>
                                             <tr>
-                                                <th>Fecha</th>
-                                                <th>Tipo Documento</th>
-                                                <th>Folio</th>
-                                                <th>Razón Social</th>
-                                                <th>Monto Neto</th>
-                                                <th>Exento</th>
-                                                <th>IVA</th>
-                                                <th>Total</th>
+                                                <th>Segmento</th>
+                                                <th>Clientes</th>
+                                                <th>% Ventas</th>
+                                                <th>Ticket Prom.</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="data-table">
-                                            <!-- Los datos se cargarán dinámicamente -->
+                                        <tbody id="segmentationTable">
+                                            <tr>
+                                                <td colspan="4" class="text-center">Calculando segmentación...</td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="tab-pane fade" id="heatmap" role="tabpanel" aria-labelledby="heatmap-tab">
-                        <div class="card">
-                            <div class="card-header">Mapa de Calor de Ventas por Mes y Año</div>
-                            <div class="card-body">
-                                <div id="heatmap-container" class="table-responsive">
-                                    <!-- El mapa de calor se generará dinámicamente -->
-                                </div>
-                            </div>
+                    
+                    <h3 class="mt-4 mb-3">Detalle por Segmentos</h3>
+                    
+                    <!-- Navegación por segmentos -->
+                    <div class="segment-tabs">
+                        <div class="segment-tab active" data-segment="premium">Clientes Premium (A)</div>
+                        <div class="segment-tab" data-segment="regular">Clientes Regulares (B)</div>
+                        <div class="segment-tab" data-segment="occasional">Clientes Ocasionales (C)</div>
+                    </div>
+                    
+                    <!-- Contenido de los segmentos -->
+                    <div id="premium-content" class="segment-content active">
+                        <div id="premium-client-list" class="cliente-grid">
+                            <p class="text-center">Cargando clientes premium...</p>
                         </div>
+                    </div>
+                    
+                    <div id="regular-content" class="segment-content">
+                        <div id="regular-client-list" class="cliente-grid">
+                            <p class="text-center">Cargando clientes regulares...</p>
+                        </div>
+                    </div>
+                    
+                    <div id="occasional-content" class="segment-content">
+                        <div class="analysis-container">
+                            <h3 class="analysis-title">Estadísticas de Clientes Ocasionales</h3>
+                            <ul id="occasional-stats" class="analysis-list">
+                                <li class="analysis-item">
+                                    <span class="analysis-indicator">⏳</span>
+                                    <span>Calculando estadísticas...</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pestaña 5: Documentos -->
+                <div class="tab-pane fade" id="documents" role="tabpanel" aria-labelledby="documents-tab">
+                    <div class="table-controls">
+                        <div class="d-flex align-items-center">
+                            <label for="rowsPerPage" class="me-2">Mostrar:</label>
+                            <select id="rowsPerPage" class="form-select form-select-sm" style="width: auto;">
+                                <option value="25">25 registros</option>
+                                <option value="50" selected>50 registros</option>
+                                <option value="100">100 registros</option>
+                                <option value="200">200 registros</option>
+                            </select>
+                        </div>
+                        <div id="tableInfo">Mostrando 0 de 0 documentos</div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th data-sort="tipoDoc">Tipo Doc</th>
+                                    <th data-sort="folio">Folio</th>
+                                    <th data-sort="fecha" class="sorted-desc">Fecha</th>
+                                    <th data-sort="cliente">Cliente</th>
+                                    <th data-sort="montoNeto" class="text-right">Monto Neto</th>
+                                    <th data-sort="exento" class="text-right">Exento</th>
+                                    <th data-sort="iva" class="text-right">IVA</th>
+                                    <th data-sort="total" class="text-right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="documentTable">
+                                <tr>
+                                    <td colspan="8" class="text-center">Cargando documentos...</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Input para cargar archivo CSV -->
-    <input type="file" id="csv-file" accept=".csv" class="hidden">
+    
+    <!-- Loading Spinner -->
+    <div id="loading-overlay" class="loading-container hidden">
+        <div class="spinner"></div>
+    </div>
 
     <script>
         // Variables globales
-        let rawData = [];
-        let filteredData = [];
-        let years = [];
-        let docTypes = [];
+        let allData = []; // Todos los datos cargados
+        let filteredData = []; // Datos filtrados por criterios
+        let chartInstances = {}; // Referencia a instancias de gráficos
+        let currentSortColumn = 'fecha'; // Columna actual de ordenamiento
+        let currentSortDirection = 'desc'; // Dirección de ordenamiento actual
+        let MAX_ROWS_TABLE = 50; // Filas máximas en la tabla de documentos
         
-        // Variables para los gráficos
-        let monthlyChart = null;
-        let docTypeChart = null;
-        let trendChart = null;
-
-        // Formato de moneda chilena
-        function formatCLP(number) {
-            return '$' + number.toLocaleString('es-CL');
-        }
-
-        // Función para ocultar el spinner de carga
-        function hideLoadingSpinner() {
-            const loading = document.querySelector('.loading');
-            if (loading) {
-                loading.classList.add('hidden');
-            }
-        }
+        // Referencia a elementos DOM
+        const setupSection = document.getElementById('setup-section');
+        const dashboardContent = document.getElementById('dashboard-content');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const dataPathInput = document.getElementById('dataPath');
+        const loadDataBtn = document.getElementById('loadDataBtn');
+        const exportExcelBtn = document.getElementById('exportExcelBtn');
+        const exportPdfBtn = document.getElementById('exportPdfBtn');
         
-        // Función para mostrar el spinner de carga
-        function showLoadingSpinner() {
-            const loading = document.querySelector('.loading');
-            if (loading) {
-                loading.classList.remove('hidden');
-            }
-        }
-
-        // Función para cargar datos de ejemplo
-        function loadSampleData() {
-            // Limpiar datos existentes
-            rawData = [];
+        // Filtros
+        const yearFilter = document.getElementById('yearFilter');
+        const monthFilter = document.getElementById('monthFilter');
+        const docTypeFilter = document.getElementById('docTypeFilter');
+        const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+        const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+        
+        // Información de rango de fechas
+        const dateRangeInfo = document.getElementById('dateRangeInfo');
+        
+        // Métricas principales
+        const totalFacturado = document.getElementById('totalFacturado');
+        const totalNeto = document.getElementById('totalNeto');
+        const ventasBrutas = document.getElementById('ventasBrutas');
+        const ventasNetas = document.getElementById('ventasNetas');
+        const totalNC = document.getElementById('totalNC');
+        
+        // Deltas de métricas (variación)
+        const deltaFacturado = document.getElementById('deltaFacturado');
+        const deltaNeto = document.getElementById('deltaNeto');
+        const deltaBrutas = document.getElementById('deltaBrutas');
+        const deltaNetas = document.getElementById('deltaNetas');
+        const deltaNC = document.getElementById('deltaNC');
+        
+        // Paginación de tabla
+        const rowsPerPage = document.getElementById('rowsPerPage');
+        const tableInfo = document.getElementById('tableInfo');
+        const documentTable = document.getElementById('documentTable');
+        
+        // Análisis y resúmenes
+        const analisisTendencia = document.getElementById('analisisTendencia');
+        const segmentationTable = document.getElementById('segmentationTable');
+        const premiumClientList = document.getElementById('premium-client-list');
+        const regularClientList = document.getElementById('regular-client-list');
+        const occasionalStats = document.getElementById('occasional-stats');
+        const resumenMontos = document.getElementById('resumenMontos');
+        const yearSummaryTable = document.getElementById('yearSummaryTable');
+        
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDataBtn.addEventListener('click', loadData);
+            applyFiltersBtn.addEventListener('click', applyFilters);
+            resetFiltersBtn.addEventListener('click', resetFilters);
+            exportExcelBtn.addEventListener('click', exportToExcel);
+            exportPdfBtn.addEventListener('click', exportToPdf);
             
-            // Generar datos de ejemplo
+            // Eventos para ordenamiento de tabla
+            document.querySelectorAll('th[data-sort]').forEach(th => {
+                th.addEventListener('click', function() {
+                    const column = this.dataset.sort;
+                    sortTable(column);
+                });
+            });
+            
+            // Eventos para pestañas de segmentación
+            document.querySelectorAll('.segment-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const segment = this.dataset.segment;
+                    
+                    // Cambiar tab activa
+                    document.querySelectorAll('.segment-tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Mostrar contenido correspondiente
+                    document.querySelectorAll('.segment-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    document.getElementById(`${segment}-content`).classList.add('active');
+                });
+            });
+            
+            // Cambiar número de filas por página
+            rowsPerPage.addEventListener('change', function() {
+                MAX_ROWS_TABLE = parseInt(this.value);
+                updateDocumentTable(filteredData.length > 0 ? filteredData : allData);
+            });
+        });
+        
+        // Función para mostrar/ocultar el indicador de carga
+        function toggleLoading(show) {
+            if (show) {
+                loadingOverlay.classList.remove('hidden');
+            } else {
+                loadingOverlay.classList.add('hidden');
+            }
+        }
+        
+        // Función para cargar datos
+        async function loadData() {
+            toggleLoading(true);
+            
+            try {
+                const path = dataPathInput.value.trim();
+                if (!path) {
+                    alert('Por favor, ingrese una ruta válida.');
+                    toggleLoading(false);
+                    return;
+                }
+                
+                // Simulación de carga de datos (en un escenario real, cargaría desde la ruta)
+                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulando el tiempo de carga
+                
+                // En un caso real, aquí cargarías los archivos desde la ruta especificada
+                // Pero para este ejemplo, generaremos datos de prueba
+                allData = generateTestData();
+                
+                if (allData.length === 0) {
+                    alert('No se pudieron cargar datos. Verifique la ruta e intente nuevamente.');
+                    toggleLoading(false);
+                    return;
+                }
+                
+                // Inicializar opciones de filtro
+                initFilterOptions();
+                
+                // Actualizar dashboard con todos los datos
+                filteredData = [];
+                updateDashboard(allData);
+                
+                // Mostrar el dashboard y habilitar exportación
+                setupSection.classList.add('hidden');
+                dashboardContent.classList.remove('hidden');
+                exportExcelBtn.disabled = false;
+                exportPdfBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Error al cargar datos:', error);
+                alert('Ocurrió un error al cargar los datos: ' + error.message);
+            } finally {
+                toggleLoading(false);
+            }
+        }
+        
+        // Generar datos de prueba para el ejemplo
+        function generateTestData() {
+            const data = [];
             const currentYear = new Date().getFullYear();
-            const lastYear = currentYear - 1;
-            years = [lastYear, currentYear];
-            docTypes = ['FACTURA', 'FACTURA EXENTA', 'NOTA DE CREDITO', 'NOTA DE DEBITO'];
+            const previousYear = currentYear - 1;
+            const docTypes = ['33', '34', '61', '56']; // 33=Factura, 34=Factura Exenta, 61=Nota Crédito, 56=Nota Débito
+            const typesNames = {
+                '33': 'Factura Electrónica',
+                '34': 'Factura Exenta Electrónica',
+                '61': 'Nota de Crédito Electrónica',
+                '56': 'Nota de Débito Electrónica'
+            };
             
-            for (let year of years) {
+            // Lista de clientes de ejemplo
+            const clients = [
+                {name: 'Comercial Los Robles S.A.', rut: '76.432.123-4'},
+                {name: 'Distribuidora El Valle Ltda.', rut: '77.654.321-5'},
+                {name: 'Importadora Santiago SpA', rut: '76.987.654-3'},
+                {name: 'Ferretería Los Andes', rut: '12.345.678-9'},
+                {name: 'Supermercados del Sur', rut: '76.123.456-7'},
+                {name: 'Constructora Nueva Vida', rut: '77.765.432-1'},
+                {name: 'Transportes Rápidos', rut: '76.234.567-8'},
+                {name: 'Maderera Los Pinos', rut: '77.876.543-2'},
+                {name: 'Carnicería Don José', rut: '10.987.654-3'},
+                {name: 'Panadería El Trigal', rut: '14.765.432-1'},
+                {name: 'Lácteos del Campo', rut: '76.543.210-9'},
+                {name: 'Textiles Modernos', rut: '77.654.321-0'},
+                {name: 'Librería Cultura', rut: '76.321.654-9'},
+                {name: 'Restaurante La Buena Mesa', rut: '15.987.654-3'},
+                {name: 'Viña Santa Rosa', rut: '76.765.432-1'}
+            ];
+            
+            // Porcentajes para simular concentración de ventas (principio de Pareto)
+            // Clientes 0 y 1 serán premium, 2-4 regulares, resto ocasionales
+            const clientImportance = [
+                0.35, 0.25, // Premium (60% ventas)
+                0.10, 0.08, 0.07, // Regulares (25% ventas)
+                0.04, 0.03, 0.02, 0.02, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01 // Ocasionales (15% ventas)
+            ];
+            
+            // Para cada mes en los dos años
+            for (const year of [previousYear, currentYear]) {
                 for (let month = 1; month <= 12; month++) {
-                    // Generar entre 5 y 15 facturas por mes
-                    const numInvoices = Math.floor(Math.random() * 10) + 5;
+                    // Generar entre 30 y 80 documentos por mes
+                    const docCount = Math.floor(Math.random() * 50) + 30;
                     
-                    for (let i = 0; i < numInvoices; i++) {
-                        const docTypeIndex = Math.floor(Math.random() * (docTypes.length - 1));
-                        const docType = docTypes[docTypeIndex]; // Excluir notas de crédito para la mayoría
-                        const isNoteCredito = docType === 'NOTA DE CREDITO';
-                        
-                        // Montos variados
-                        const neto = Math.floor(Math.random() * 5000000) + 100000;
-                        const exento = Math.floor(Math.random() * 200000);
-                        const iva = Math.round(neto * 0.19);
-                        const total = neto + exento + iva;
-                        
-                        // Fecha aleatoria del mes
-                        const day = Math.floor(Math.random() * 28) + 1;
-                        const fecha = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-                        
-                        // Generar folio único
-                        const folio = Math.floor(Math.random() * 100000) + 1;
-                        
-                        // Datos de cliente
-                        const nombreCliente = `Cliente Ejemplo ${Math.floor(Math.random() * 100) + 1}`;
-                        
-                        rawData.push({
-                            fecha: fecha,
-                            tipoDocumento: docType,
-                            folio: folio,
-                            razonSocial: nombreCliente,
-                            rut: '', // Dejamos el RUT vacío por ahora
-                            montoNeto: isNoteCredito ? -neto : neto,
-                            exento: isNoteCredito ? -exento : exento,
-                            iva: isNoteCredito ? -iva : iva,
-                            total: isNoteCredito ? -total : total
-                        });
-                    }
-                    
-                    // Agregar algunas notas de crédito (aproximadamente 20% del total de documentos)
-                    if (Math.random() > 0.7) {
-                        const numNC = Math.floor(Math.random() * 3) + 1;
-                        
-                        for (let i = 0; i < numNC; i++) {
-                            const neto = Math.floor(Math.random() * 500000) + 50000;
-                            const exento = Math.floor(Math.random() * 50000);
-                            const iva = Math.round(neto * 0.19);
-                            const total = neto + exento + iva;
-                            
-                            const day = Math.floor(Math.random() * 28) + 1;
-                            const fecha = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-                            
-                            const folio = Math.floor(Math.random() * 100000) + 1;
-                            const nombreCliente = `Cliente Ejemplo ${Math.floor(Math.random() * 100) + 1}`;
-                            
-                            rawData.push({
-                                fecha: fecha,
-                                tipoDocumento: 'NOTA DE CREDITO',
-                                folio: folio,
-                                razonSocial: nombreCliente,
-                                rut: '', // Dejamos el RUT vacío como en el resto
-                                montoNeto: -neto,
-                                exento: -exento,
-                                iva: -iva,
-                                total: -total
-                            });
+                    for (let i = 0; i < docCount; i++) {
+                        // Determinar tipo de documento (80% facturas, 15% NC, 5% otros)
+                        let docTypeIndex;
+                        const docRand = Math.random();
+                        if (docRand < 0.80) {
+                            docTypeIndex = Math.random() < 0.85 ? 0 : 1; // 85% fact. normal, 15% fact. exenta
+                        } else if (docRand < 0.95) {
+                            docTypeIndex = 2; // Nota de crédito
+                        } else {
+                            docTypeIndex = 3; // Nota de débito
                         }
+                        
+                        const docType = docTypes[docTypeIndex];
+                        const isNC = docType === '61';
+                        
+                        // Determinar cliente según distribución Pareto
+                        const clientRand = Math.random();
+                        let clientIndex = 0;
+                        let cumSum = 0;
+                        
+                        for (let j = 0; j < clientImportance.length; j++) {
+                            cumSum += clientImportance[j];
+                            if (clientRand <= cumSum) {
+                                clientIndex = j;
+                                break;
+                            }
+                        }
+                        
+                        const client = clients[clientIndex % clients.length];
+                        
+                        // Generar montos aleatorios con distribución realista
+                        const baseAmount = Math.pow(Math.random(), 2) * 5000000 + 10000;
+                        const importance = clientImportance[clientIndex % clientImportance.length];
+                        const neto = Math.round(baseAmount * (1 + importance * 5));
+                        
+                        // Para facturas exentas, el exento es el monto total
+                        const hasExento = docType === '34';
+                        const exento = hasExento ? neto : Math.round(Math.random() * neto * 0.05); // 0-5% exento
+                        const iva = hasExento ? 0 : Math.round((neto - exento) * 0.19); // 19% IVA
+                        const total = neto + iva;
+                        
+                        // Fecha aleatoria dentro del mes
+                        const maxDay = new Date(year, month, 0).getDate();
+                        const day = Math.floor(Math.random() * maxDay) + 1;
+                        const date = new Date(year, month - 1, day);
+                        
+                        // Generar folio único (formato más realista)
+                        const folio = Math.floor(Math.random() * 90000) + 10000;
+                        
+                        // Crear entrada
+                        const entry = {
+                            tipoDoc: docType,
+                            tipoDocNombre: typesNames[docType],
+                            folio: folio,
+                            fecha: date,
+                            cliente: client.name,
+                            rut: client.rut,
+                            montoNeto: isNC ? -neto : neto,
+                            exento: isNC ? -exento : exento,
+                            iva: isNC ? -iva : iva,
+                            total: isNC ? -total : total,
+                            diasemana: date.getDay()
+                        };
+                        
+                        data.push(entry);
                     }
                 }
             }
             
-            // Ordenar por fecha
-            rawData.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-            
-            // Inicialmente, los datos filtrados son todos los datos
-            filteredData = [...rawData];
-            
-            console.log("Datos cargados:", rawData.length, "registros");
-            
-            // Actualizar los selectores de filtro
-            updateFilterOptions();
-            
-            // Actualizar estadísticas y gráficos
-            updateDashboard();
+            // Ordenar por fecha (más reciente a más antiguo)
+            return data.sort((a, b) => b.fecha - a.fecha);
         }
-
-        // Función para actualizar las opciones de filtro
-        function updateFilterOptions() {
-            // Actualizar selector de años
-            const yearFilter = document.getElementById('year-filter');
-            if (!yearFilter) return;
+        
+        // Inicializar opciones de filtro
+        function initFilterOptions() {
+            // Obtener años únicos
+            const years = [...new Set(allData.map(item => item.fecha.getFullYear()))].sort();
             
+            // Actualizar select de años
             yearFilter.innerHTML = '';
             years.forEach(year => {
                 const option = document.createElement('option');
@@ -645,209 +1288,766 @@
                 yearFilter.appendChild(option);
             });
             
-            // Actualizar selector de tipos de documento
-            const docTypeFilter = document.getElementById('doc-type-filter');
-            if (!docTypeFilter) return;
+            // Obtener tipos de documento únicos
+            const docTypes = [...new Set(allData.map(item => item.tipoDoc))].sort();
             
+            // Actualizar select de tipos de documento
             docTypeFilter.innerHTML = '';
             docTypes.forEach(type => {
+                const typeName = allData.find(item => item.tipoDoc === type)?.tipoDocNombre || type;
                 const option = document.createElement('option');
                 option.value = type;
-                option.textContent = type;
+                option.textContent = `${type} - ${typeName}`;
                 docTypeFilter.appendChild(option);
             });
         }
-
-        // Función para aplicar filtros
+        
+        // Aplicar filtros seleccionados
         function applyFilters() {
-            // Obtener valores de filtros
-            const yearFilter = document.getElementById('year-filter');
-            const monthFilter = document.getElementById('month-filter');
-            const docTypeFilter = document.getElementById('doc-type-filter');
+            // Obtener valores seleccionados
+            const selectedYears = Array.from(yearFilter.selectedOptions).map(opt => parseInt(opt.value));
+            const selectedMonths = Array.from(monthFilter.selectedOptions).map(opt => parseInt(opt.value));
+            const selectedDocTypes = Array.from(docTypeFilter.selectedOptions).map(opt => opt.value);
             
-            if (!yearFilter || !monthFilter || !docTypeFilter) return;
-            
-            const selectedYears = Array.from(yearFilter.selectedOptions).map(option => option.value);
-            const selectedMonths = Array.from(monthFilter.selectedOptions).map(option => parseInt(option.value));
-            const selectedDocTypes = Array.from(docTypeFilter.selectedOptions).map(option => option.value);
-            
-            // Si no hay nada seleccionado en un filtro, considerar que se seleccionaron todas las opciones
-            const allYears = selectedYears.length === 0 ? years : selectedYears;
-            const allMonths = selectedMonths.length === 0 ? Array.from({ length: 12 }, (_, i) => i + 1) : selectedMonths;
-            const allDocTypes = selectedDocTypes.length === 0 ? docTypes : selectedDocTypes;
-            
-            // Filtrar datos
-            filteredData = rawData.filter(item => {
-                const itemDate = new Date(item.fecha);
-                const itemYear = itemDate.getFullYear().toString();
-                const itemMonth = itemDate.getMonth() + 1;
+            // Aplicar filtros
+            filteredData = allData.filter(item => {
+                const itemYear = item.fecha.getFullYear();
+                const itemMonth = item.fecha.getMonth() + 1;
                 
-                return allYears.includes(itemYear) && 
-                       allMonths.includes(itemMonth) && 
-                       allDocTypes.includes(item.tipoDocumento);
+                const yearMatch = selectedYears.length === 0 || selectedYears.includes(itemYear);
+                const monthMatch = selectedMonths.length === 0 || selectedMonths.includes(itemMonth);
+                const docTypeMatch = selectedDocTypes.length === 0 || selectedDocTypes.includes(item.tipoDoc);
+                
+                return yearMatch && monthMatch && docTypeMatch;
             });
             
-            console.log("Datos filtrados:", filteredData.length, "registros");
-            
-            // Actualizar dashboard con los datos filtrados
-            updateDashboard();
+            // Actualizar dashboard con datos filtrados
+            updateDashboard(filteredData);
         }
-
-        // Función para reiniciar filtros
+        
+        // Reiniciar filtros
         function resetFilters() {
-            // Limpiar selecciones en los filtros
-            const yearFilter = document.getElementById('year-filter');
-            const monthFilter = document.getElementById('month-filter');
-            const docTypeFilter = document.getElementById('doc-type-filter');
+            yearFilter.selectedIndex = -1;
+            monthFilter.selectedIndex = -1;
+            docTypeFilter.selectedIndex = -1;
             
-            if (yearFilter) yearFilter.selectedIndex = -1;
-            if (monthFilter) monthFilter.selectedIndex = -1;
-            if (docTypeFilter) docTypeFilter.selectedIndex = -1;
-            
-            // Restaurar todos los datos
-            filteredData = [...rawData];
-            
-            // Actualizar dashboard
-            updateDashboard();
+            filteredData = [];
+            updateDashboard(allData);
         }
-
-        // Función para calcular estadísticas
-        function calculateStats() {
-            // Inicializar totales
-            let totalFacturado = 0;
-            let totalNeto = 0;
-            let totalExento = 0;
-            let totalIVA = 0;
-            let totalNC = 0;
+        
+        // Función principal para actualizar todo el dashboard
+        function updateDashboard(data) {
+            // Actualizar rango de fechas visualizado
+            updateDateRange(data);
             
-            filteredData.forEach(item => {
-                const isNC = item.tipoDocumento === 'NOTA DE CREDITO';
+            // Actualizar métricas principales
+            updateMetrics(data);
+            
+            // Actualizar todos los gráficos y visualizaciones
+            updateCharts(data);
+            
+            // Actualizar tabla de documentos
+            updateDocumentTable(data);
+            
+            // Actualizar análisis y segmentación
+            updateAnalysis(data);
+        }
+        
+        // Actualizar rango de fechas
+        function updateDateRange(data) {
+            if (data.length === 0) {
+                dateRangeInfo.textContent = 'No hay datos para mostrar';
+                return;
+            }
+            
+            // Encontrar fecha mínima y máxima
+            const dates = data.map(item => item.fecha);
+            const minDate = new Date(Math.min(...dates));
+            const maxDate = new Date(Math.max(...dates));
+            
+            // Formatear fechas
+            const formatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+            const minDateStr = minDate.toLocaleDateString('es-CL', formatOptions);
+            const maxDateStr = maxDate.toLocaleDateString('es-CL', formatOptions);
+            
+            dateRangeInfo.textContent = `Rango de datos: ${minDateStr} - ${maxDateStr}`;
+        }
+        
+        // Actualizar métricas principales
+        function updateMetrics(data) {
+            let totalFacturadoValue = 0;
+            let totalNetoValue = 0;
+            let totalExentoValue = 0;
+            let totalIvaValue = 0;
+            let totalNCValue = 0;
+            
+            data.forEach(item => {
+                totalFacturadoValue += item.total;
+                totalNetoValue += item.montoNeto;
+                totalExentoValue += item.exento;
+                totalIvaValue += item.iva;
                 
-                // Sumar todos los documentos para el total facturado (incluyendo notas de crédito)
-                totalFacturado += item.total;
-                
-                // Sumar montos netos y exentos (incluyendo notas de crédito)
-                totalNeto += item.montoNeto;
-                totalExento += item.exento;
-                totalIVA += item.iva;
-                
-                // Sumar notas de crédito por separado
-                if (isNC) {
-                    totalNC += Math.abs(item.total);
+                if (item.tipoDoc === '61') { // Nota de crédito
+                    totalNCValue += Math.abs(item.total);
                 }
             });
             
-            // Calcular ventas brutas: neto + exento + IVA (esto ya incluye el efecto de las notas de crédito)
-            const ventasBrutas = totalNeto + totalExento + totalIVA;
+            // Calcular métricas derivadas
+            const totalNetoExento = totalNetoValue + totalExentoValue;
+            const ventasBrutasValue = totalNetoValue + totalExentoValue + totalIvaValue;
+            const ventasNetasValue = totalNetoValue + totalExentoValue;
             
-            // Calcular ventas netas: neto + exento (sin IVA y ya con el efecto de las notas de crédito)
-            const ventasNetas = totalNeto + totalExento;
+            // Actualizar valores en la UI
+            totalFacturado.textContent = formatCurrency(totalFacturadoValue);
+            totalNeto.textContent = formatCurrency(totalNetoExento);
+            ventasBrutas.textContent = formatCurrency(ventasBrutasValue);
+            ventasNetas.textContent = formatCurrency(ventasNetasValue);
+            totalNC.textContent = formatCurrency(totalNCValue);
             
-            // Actualizar los elementos en la UI
-            document.getElementById('total-facturado').textContent = formatCLP(totalFacturado);
-            document.getElementById('total-neto').textContent = formatCLP(totalNeto + totalExento);
-            document.getElementById('ventas-brutas').textContent = formatCLP(ventasBrutas);
-            document.getElementById('ventas-netas').textContent = formatCLP(ventasNetas);
-            document.getElementById('total-nc').textContent = formatCLP(totalNC);
+            // Añadir clases negativas si corresponde
+            totalFacturado.classList.toggle('negative', totalFacturadoValue < 0);
+            totalNeto.classList.toggle('negative', totalNetoExento < 0);
+            ventasBrutas.classList.toggle('negative', ventasBrutasValue < 0);
+            ventasNetas.classList.toggle('negative', ventasNetasValue < 0);
             
-            return {
-                totalFacturado,
-                totalNeto,
-                totalExento,
-                totalIVA,
-                ventasBrutas,
-                ventasNetas,
-                totalNC
-            };
+            // Calcular y mostrar variaciones
+            calculateDeltas(data);
         }
-
-        // Función para actualizar la tabla de datos
-        function updateDataTable() {
-            const tableBody = document.getElementById('data-table');
-            if (!tableBody) return;
-            
-            tableBody.innerHTML = '';
-            
-            filteredData.forEach(item => {
-                const row = document.createElement('tr');
-                
-                // Formatear fecha en formato dd-mm-yyyy
-                const fechaParts = item.fecha.split('-');
-                const fechaFormateada = `${fechaParts[2]}-${fechaParts[1]}-${fechaParts[0]}`;
-                
-                row.innerHTML = `
-                    <td>${fechaFormateada}</td>
-                    <td>${item.tipoDocumento}</td>
-                    <td>${item.folio}</td>
-                    <td>${item.razonSocial}</td>
-                    <td>${formatCLP(item.montoNeto)}</td>
-                    <td>${formatCLP(item.exento)}</td>
-                    <td>${formatCLP(item.iva)}</td>
-                    <td>${formatCLP(item.total)}</td>
-                `;
-                
-                tableBody.appendChild(row);
-            });
-        }
-
-        // Funciones para crear gráficos
-        function createMonthlyChart() {
-            // Agrupar datos por año y mes
+        
+        // Calcular y mostrar variación (delta) entre periodos
+        function calculateDeltas(data) {
+            // Agrupar datos por mes
             const monthlyData = {};
             
-            filteredData.forEach(item => {
-                const date = new Date(item.fecha);
-                const year = date.getFullYear();
-                const month = date.getMonth();
+            data.forEach(item => {
+                const yearMonth = `${item.fecha.getFullYear()}-${(item.fecha.getMonth() + 1).toString().padStart(2, '0')}`;
                 
-                if (!monthlyData[year]) {
-                    monthlyData[year] = Array(12).fill(0);
+                if (!monthlyData[yearMonth]) {
+                    monthlyData[yearMonth] = {
+                        year: item.fecha.getFullYear(),
+                        month: item.fecha.getMonth() + 1,
+                        total: 0,
+                        neto: 0,
+                        exento: 0,
+                        iva: 0,
+                        nc: 0,
+                        date: new Date(item.fecha.getFullYear(), item.fecha.getMonth(), 1)
+                    };
                 }
                 
-                // Solo considerar facturas y facturas exentas para este gráfico (no notas de crédito)
-                if (item.tipoDocumento !== 'NOTA DE CREDITO') {
-                    monthlyData[year][month] += item.total;
+                monthlyData[yearMonth].total += item.total;
+                monthlyData[yearMonth].neto += item.montoNeto;
+                monthlyData[yearMonth].exento += item.exento;
+                monthlyData[yearMonth].iva += item.iva;
+                
+                if (item.tipoDoc === '61') {
+                    monthlyData[yearMonth].nc += Math.abs(item.total);
                 }
+            });
+            
+            // Ordenar meses cronológicamente
+            const sortedMonths = Object.values(monthlyData).sort((a, b) => a.date - b.date);
+            
+            // Si hay al menos dos meses, calcular variación
+            if (sortedMonths.length >= 2) {
+                const currentMonth = sortedMonths[sortedMonths.length - 1];
+                const previousMonth = sortedMonths[sortedMonths.length - 2];
+                
+                // Calcular porcentajes de variación
+                const calcDelta = (current, previous) => {
+                    if (previous === 0) return current !== 0 ? Infinity : 0;
+                    return ((current - previous) / Math.abs(previous)) * 100;
+                };
+                
+                const totalDelta = calcDelta(currentMonth.total, previousMonth.total);
+                const netoDelta = calcDelta(currentMonth.neto + currentMonth.exento, previousMonth.neto + previousMonth.exento);
+                const brutasDelta = calcDelta(currentMonth.neto + currentMonth.exento + currentMonth.iva, 
+                                             previousMonth.neto + previousMonth.exento + previousMonth.iva);
+                const netasDelta = calcDelta(currentMonth.neto + currentMonth.exento, previousMonth.neto + previousMonth.exento);
+                const ncDelta = calcDelta(currentMonth.nc, previousMonth.nc);
+                
+                // Formatear y mostrar variaciones
+                const formatMonth = (month) => {
+                    return month.date.toLocaleDateString('es-CL', { month: 'long' });
+                };
+                
+                const formatDelta = (delta) => {
+                    if (!isFinite(delta)) return '<span class="delta-up">Nuevo</span>';
+                    
+                    const prefix = delta >= 0 ? '<span class="delta-up">▲' : '<span class="delta-down">▼';
+                    return `${prefix} ${Math.abs(delta).toFixed(1)}%</span> vs. ${formatMonth(previousMonth)}`;
+                };
+                
+                deltaFacturado.innerHTML = formatDelta(totalDelta);
+                deltaNeto.innerHTML = formatDelta(netoDelta);
+                deltaBrutas.innerHTML = formatDelta(brutasDelta);
+                deltaNetas.innerHTML = formatDelta(netasDelta);
+                deltaNC.innerHTML = formatDelta(ncDelta);
+            } else {
+                // No hay datos suficientes para comparar
+                const emptyDelta = 'No hay datos comparativos';
+                deltaFacturado.textContent = emptyDelta;
+                deltaNeto.textContent = emptyDelta;
+                deltaBrutas.textContent = emptyDelta;
+                deltaNetas.textContent = emptyDelta;
+                deltaNC.textContent = emptyDelta;
+            }
+        }
+        
+        // Actualizar todos los gráficos
+        function updateCharts(data) {
+            // Destruir gráficos existentes para evitar duplicados
+            Object.values(chartInstances).forEach(chart => {
+                if (chart) chart.destroy();
+            });
+            
+            // Reiniciar referencia a los gráficos
+            chartInstances = {};
+            
+            if (data.length === 0) {
+                console.warn('No hay datos para generar gráficos');
+                return;
+            }
+            
+            // Crear todos los gráficos
+            createVentasPorMesChart(data);
+            createDocTypeChart(data);
+            createTrendChart(data);
+            createWeekdayChart(data);
+            createNCvsFacturasChart(data);
+            createYearComparisonChart(data);
+            createClientSegmentChart(data);
+            createMontoDesglose(data);
+        }
+        
+        // --- Funciones para crear cada gráfico individual ---
+        
+        // Gráfico 1: Ventas por Mes
+        function createVentasPorMesChart(data) {
+            // Agrupar datos por mes
+            const monthlyData = {};
+            
+            data.forEach(item => {
+                const yearMonth = `${item.fecha.getFullYear()}-${(item.fecha.getMonth() + 1).toString().padStart(2, '0')}`;
+                
+                if (!monthlyData[yearMonth]) {
+                    monthlyData[yearMonth] = {
+                        year: item.fecha.getFullYear(),
+                        month: item.fecha.getMonth() + 1,
+                        total: 0,
+                        date: new Date(item.fecha.getFullYear(), item.fecha.getMonth(), 1)
+                    };
+                }
+                
+                // Solo sumar ventas (no NC)
+                if (item.tipoDoc !== '61') {
+                    monthlyData[yearMonth].total += item.total;
+                }
+            });
+            
+            // Obtener últimos 12 meses ordenados
+            const sortedMonths = Object.values(monthlyData)
+                .sort((a, b) => a.date - b.date)
+                .slice(-12);
+            
+            // Preparar datos para el gráfico
+            const labels = sortedMonths.map(m => {
+                return m.date.toLocaleDateString('es-CL', { month: 'short', year: 'numeric' });
+            });
+            
+            const values = sortedMonths.map(m => m.total);
+            
+            // Crear gráfico
+            const ctx = document.getElementById('ventasPorMesChart').getContext('2d');
+            
+            chartInstances.ventasPorMes = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Ventas Mensuales',
+                        data: values,
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Ventas: ' + formatCurrency(context.raw);
+                                }
+                            }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrencyShort(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Gráfico 2: Distribución por Tipo de Documento
+        function createDocTypeChart(data) {
+            // Agrupar por tipo de documento
+            const docTypeCounts = {};
+            const docTypeNames = {};
+            
+            data.forEach(item => {
+                if (!docTypeCounts[item.tipoDoc]) {
+                    docTypeCounts[item.tipoDoc] = 0;
+                    docTypeNames[item.tipoDoc] = item.tipoDocNombre || `Tipo ${item.tipoDoc}`;
+                }
+                
+                docTypeCounts[item.tipoDoc]++;
             });
             
             // Preparar datos para el gráfico
+            const labels = Object.keys(docTypeCounts).map(type => {
+                return `${type} - ${docTypeNames[type]}`;
+            });
+            
+            const values = Object.values(docTypeCounts);
+            
+            // Colores para cada tipo
+            const backgroundColors = [
+                'rgba(59, 130, 246, 0.7)',  // Azul - Facturas
+                'rgba(16, 185, 129, 0.7)',  // Verde - Facturas Exentas
+                'rgba(239, 68, 68, 0.7)',   // Rojo - Notas de Crédito
+                'rgba(245, 158, 11, 0.7)'   // Naranja - Notas de Débito
+            ];
+            
+            // Crear gráfico
+            const ctx = document.getElementById('docTypeChart').getContext('2d');
+            
+            chartInstances.docType = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: backgroundColors.slice(0, labels.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} documentos (${percentage}%)`;
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 15,
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Gráfico 3: Tendencia de Ventas
+        function createTrendChart(data) {
+            // Agrupar datos por día
+            const dailyData = {};
+            
+            data.forEach(item => {
+                const dateStr = item.fecha.toISOString().split('T')[0];
+                
+                if (!dailyData[dateStr]) {
+                    dailyData[dateStr] = {
+                        date: new Date(item.fecha),
+                        total: 0
+                    };
+                }
+                
+                dailyData[dateStr].total += item.total;
+            });
+            
+            // Ordenar días cronológicamente
+            const sortedDays = Object.values(dailyData).sort((a, b) => a.date - b.date);
+            
+            // Calcular media móvil de 7 días
+            const movingAvg = [];
+            const window = 7;
+            
+            if (sortedDays.length >= window) {
+                for (let i = window - 1; i < sortedDays.length; i++) {
+                    let sum = 0;
+                    for (let j = 0; j < window; j++) {
+                        sum += sortedDays[i - j].total;
+                    }
+                    movingAvg.push(sum / window);
+                }
+            }
+            
+            // Preparar datos para el gráfico
+            const labels = sortedDays.map(day => {
+                return day.date.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+            });
+            
+            const values = sortedDays.map(day => day.total);
+            
+            // Preparar datos de media móvil (con nulls para alinear)
+            const movingAvgData = Array(window - 1).fill(null).concat(movingAvg);
+            
+            // Crear gráfico
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            
+            chartInstances.trend = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Ventas Diarias',
+                            data: values,
+                            borderColor: 'rgba(59, 130, 246, 0.8)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            fill: true,
+                            pointRadius: 0,
+                            pointHoverRadius: 4,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Media Móvil (7 días)',
+                            data: movingAvgData,
+                            borderColor: 'rgba(245, 158, 11, 0.8)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatCurrency(context.raw);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrencyShort(value);
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Gráfico 4: Ventas por Día de la Semana
+        function createWeekdayChart(data) {
+            const weekDays = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+            const salesByDay = Array(7).fill(0);
+            const countByDay = Array(7).fill(0);
+            
+            data.forEach(item => {
+                const dayOfWeek = item.fecha.getDay();
+                
+                if (item.tipoDoc !== '61') { // Excluir notas de crédito
+                    salesByDay[dayOfWeek] += item.total;
+                    countByDay[dayOfWeek]++;
+                }
+            });
+            
+            // Colores para cada día
+            const backgroundColors = [
+                'rgba(107, 114, 128, 0.7)', // Domingo (gris)
+                'rgba(59, 130, 246, 0.7)',  // Lunes (azul)
+                'rgba(16, 185, 129, 0.7)',  // Martes (verde)
+                'rgba(139, 92, 246, 0.7)',  // Miércoles (morado)
+                'rgba(245, 158, 11, 0.7)',  // Jueves (naranja)
+                'rgba(239, 68, 68, 0.7)',   // Viernes (rojo)
+                'rgba(236, 72, 153, 0.7)'   // Sábado (rosa)
+            ];
+            
+            // Crear gráfico
+            const ctx = document.getElementById('weekdayChart').getContext('2d');
+            
+            chartInstances.weekday = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: weekDays,
+                    datasets: [{
+                        label: 'Ventas por Día',
+                        data: salesByDay,
+                        backgroundColor: backgroundColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const dayIndex = context.dataIndex;
+                                    return [
+                                        'Ventas: ' + formatCurrency(context.raw),
+                                        'Documentos: ' + countByDay[dayIndex]
+                                    ];
+                                }
+                            }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrencyShort(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Gráfico 5: Notas de Crédito vs Facturas
+        function createNCvsFacturasChart(data) {
+            // Agrupar por mes
+            const monthlyData = {};
+            
+            data.forEach(item => {
+                const yearMonth = `${item.fecha.getFullYear()}-${(item.fecha.getMonth() + 1).toString().padStart(2, '0')}`;
+                
+                if (!monthlyData[yearMonth]) {
+                    monthlyData[yearMonth] = {
+                        date: new Date(item.fecha.getFullYear(), item.fecha.getMonth(), 1),
+                        facturas: 0,
+                        notasCredito: 0
+                    };
+                }
+                
+                if (item.tipoDoc === '61') { // Nota de crédito
+                    monthlyData[yearMonth].notasCredito += Math.abs(item.total);
+                } else if (item.tipoDoc === '33' || item.tipoDoc === '34') { // Facturas
+                    monthlyData[yearMonth].facturas += item.total;
+                }
+            });
+            
+            // Ordenar por fecha
+            const sortedMonths = Object.values(monthlyData)
+                .sort((a, b) => a.date - b.date)
+                .slice(-6); // Últimos 6 meses
+            
+            // Preparar datos para el gráfico
+            const labels = sortedMonths.map(m => {
+                return m.date.toLocaleDateString('es-CL', { month: 'short', year: 'numeric' });
+            });
+            
+            const facturaValues = sortedMonths.map(m => m.facturas);
+            const ncValues = sortedMonths.map(m => m.notasCredito);
+            
+            // Calcular ratio
+            const ratios = sortedMonths.map(m => {
+                const ratio = m.facturas > 0 ? (m.notasCredito / m.facturas) * 100 : 0;
+                return Math.min(ratio, 100); // Limitar a 100% para visualización
+            });
+            
+            // Crear gráfico
+            const ctx = document.getElementById('ncVsFacturasChart').getContext('2d');
+            
+            chartInstances.ncVsFacturas = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Facturas',
+                            data: facturaValues,
+                            backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1,
+                            order: 2
+                        },
+                        {
+                            label: 'Notas de Crédito',
+                            data: ncValues,
+                            backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                            borderColor: 'rgba(239, 68, 68, 1)',
+                            borderWidth: 1,
+                            order: 1
+                        },
+                        {
+                            label: 'Ratio NC/Facturas (%)',
+                            data: ratios,
+                            type: 'line',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 2,
+                            pointStyle: 'rectRot',
+                            pointRadius: 5,
+                            fill: false,
+                            yAxisID: 'y1',
+                            order: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.dataset.label === 'Ratio NC/Facturas (%)') {
+                                        return `${context.dataset.label}: ${context.raw.toFixed(1)}%`;
+                                    } else {
+                                        return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
+                                    }
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrencyShort(value);
+                                }
+                            }
+                        },
+                        y1: {
+                            beginAtZero: true,
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            max: 100,
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Gráfico 6: Comparativa Anual
+        function createYearComparisonChart(data) {
+            // Agrupar por año y mes
+            const yearMonthData = {};
+            
+            data.forEach(item => {
+                const year = item.fecha.getFullYear();
+                const month = item.fecha.getMonth();
+                const key = `${year}-${month}`;
+                
+                if (!yearMonthData[key]) {
+                    yearMonthData[key] = {
+                        year,
+                        month,
+                        total: 0
+                    };
+                }
+                
+                yearMonthData[key].total += item.total;
+            });
+            
+            // Separar por año
+            const years = {};
+            
+            Object.values(yearMonthData).forEach(item => {
+                if (!years[item.year]) {
+                    years[item.year] = Array(12).fill(0);
+                }
+                
+                years[item.year][item.month] = item.total;
+            });
+            
+            // Preparar datasets
             const datasets = [];
             const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
             
-            // Colores para cada año
+            // Colores por año
             const colors = [
-                'rgba(52, 152, 219, 0.7)',
-                'rgba(46, 204, 113, 0.7)',
-                'rgba(155, 89, 182, 0.7)',
-                'rgba(230, 126, 34, 0.7)'
+                { bg: 'rgba(59, 130, 246, 0.7)', border: 'rgba(59, 130, 246, 1)' },
+                { bg: 'rgba(16, 185, 129, 0.7)', border: 'rgba(16, 185, 129, 1)' },
+                { bg: 'rgba(139, 92, 246, 0.7)', border: 'rgba(139, 92, 246, 1)' }
             ];
             
             let colorIndex = 0;
-            for (const year in monthlyData) {
-                datasets.push({
-                    label: `${year}`,
-                    data: monthlyData[year],
-                    backgroundColor: colors[colorIndex % colors.length],
-                    borderColor: colors[colorIndex % colors.length].replace('0.7', '1'),
-                    borderWidth: 1
+            
+            Object.entries(years)
+                .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+                .forEach(([year, values]) => {
+                    datasets.push({
+                        label: year,
+                        data: values,
+                        backgroundColor: colors[colorIndex % colors.length].bg,
+                        borderColor: colors[colorIndex % colors.length].border,
+                        borderWidth: 1
+                    });
+                    colorIndex++;
                 });
-                colorIndex++;
-            }
             
-            // Crear o actualizar el gráfico
-            const canvas = document.getElementById('monthlyChart');
-            if (!canvas) return;
+            // Crear gráfico
+            const ctx = document.getElementById('yearComparisonChart').getContext('2d');
             
-            const ctx = canvas.getContext('2d');
-            if (!ctx) return;
-            
-            // Destruir el gráfico existente si existe
-            if (monthlyChart) {
-                monthlyChart.destroy();
-            }
-            
-            // Crear nuevo gráfico
-            monthlyChart = new Chart(ctx, {
+            chartInstances.yearComparison = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: monthNames,
@@ -856,87 +2056,151 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatCurrency(context.raw);
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'top'
+                        }
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '$' + (value / 1000000).toFixed(1) + 'M';
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Millones de Pesos'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Mes'
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + formatCLP(context.raw);
+                                    return formatCurrencyShort(value);
                                 }
                             }
                         }
                     }
                 }
             });
-        }
-
-        function createDocTypeChart() {
-            // Agrupar datos por tipo de documento
-            const docTypeData = {};
             
-            filteredData.forEach(item => {
-                if (!docTypeData[item.tipoDocumento]) {
-                    docTypeData[item.tipoDocumento] = 0;
+            // Actualizar tabla de resumen anual
+            updateYearSummaryTable(data);
+        }
+        
+        // Actualizar tabla de resumen anual
+        function updateYearSummaryTable(data) {
+            // Agrupar por año
+            const yearData = {};
+            
+            data.forEach(item => {
+                const year = item.fecha.getFullYear();
+                
+                if (!yearData[year]) {
+                    yearData[year] = {
+                        year,
+                        total: 0,
+                        docs: 0,
+                        notasCredito: 0,
+                        ncValue: 0,
+                        clientes: new Set()
+                    };
                 }
                 
-                // Usar valores absolutos para este gráfico
-                docTypeData[item.tipoDocumento] += Math.abs(item.total);
+                yearData[year].total += item.total;
+                yearData[year].docs++;
+                yearData[year].clientes.add(item.rut);
+                
+                if (item.tipoDoc === '61') {
+                    yearData[year].notasCredito++;
+                    yearData[year].ncValue += Math.abs(item.total);
+                }
             });
             
-            // Preparar datos para el gráfico
-            const labels = Object.keys(docTypeData);
-            const data = Object.values(docTypeData);
+            // Ordenar años cronológicamente
+            const sortedYears = Object.values(yearData)
+                .sort((a, b) => a.year - b.year);
             
-            // Colores para cada tipo de documento
-            const backgroundColors = [
-                'rgba(52, 152, 219, 0.7)',
-                'rgba(46, 204, 113, 0.7)',
-                'rgba(155, 89, 182, 0.7)',
-                'rgba(231, 76, 60, 0.7)',
-                'rgba(241, 196, 15, 0.7)'
+            // Calcular tickets promedio y variaciones
+            sortedYears.forEach((item, index) => {
+                const docsNetos = item.docs - item.notasCredito;
+                item.ticketPromedio = docsNetos > 0 ? item.total / docsNetos : 0;
+                
+                if (index > 0) {
+                    const prev = sortedYears[index - 1];
+                    item.variacion = prev.total !== 0 ? ((item.total - prev.total) / Math.abs(prev.total)) * 100 : 0;
+                } else {
+                    item.variacion = null;
+                }
+            });
+            
+            // Actualizar tabla
+            yearSummaryTable.innerHTML = sortedYears.map(item => {
+                const variacionHTML = item.variacion !== null
+                    ? `<span class="${item.variacion >= 0 ? 'text-success' : 'text-danger'}">${item.variacion >= 0 ? '▲' : '▼'} ${Math.abs(item.variacion).toFixed(1)}%</span>`
+                    : '-';
+                
+                return `
+                    <tr>
+                        <td>${item.year}</td>
+                        <td>${formatCurrency(item.total)}</td>
+                        <td>${item.docs} (${item.clientes.size} clientes)</td>
+                        <td>${item.notasCredito} (${formatCurrency(item.ncValue)})</td>
+                        <td>${formatCurrency(item.ticketPromedio)}</td>
+                        <td>${variacionHTML}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // Gráfico 7: Segmentación de Clientes
+        function createClientSegmentChart(data) {
+            // Obtener segmentación
+            const { premiumClients, regularClients, occasionalClients } = segmentClients(data);
+            
+            // Calcular valores por segmento
+            const totalVentas = data.reduce((sum, item) => sum + item.total, 0);
+            
+            const calcSegmentSales = (clients) => {
+                return clients.reduce((sum, client) => sum + client.total, 0);
+            };
+            
+            const premiumSales = calcSegmentSales(premiumClients);
+            const regularSales = calcSegmentSales(regularClients);
+            const occasionalSales = calcSegmentSales(occasionalClients);
+            
+            // Preparar datos para el gráfico
+            const segmentData = [
+                {
+                    label: `Premium (A): ${premiumClients.length} clientes`,
+                    value: premiumSales,
+                    percentage: totalVentas !== 0 ? (premiumSales / totalVentas) * 100 : 0
+                },
+                {
+                    label: `Regulares (B): ${regularClients.length} clientes`,
+                    value: regularSales,
+                    percentage: totalVentas !== 0 ? (regularSales / totalVentas) * 100 : 0
+                },
+                {
+                    label: `Ocasionales (C): ${occasionalClients.length} clientes`,
+                    value: occasionalSales,
+                    percentage: totalVentas !== 0 ? (occasionalSales / totalVentas) * 100 : 0
+                }
             ];
             
-            // Crear o actualizar el gráfico
-            const canvas = document.getElementById('docTypeChart');
-            if (!canvas) return;
+            // Colores para cada segmento
+            const backgroundColors = [
+                'rgba(16, 185, 129, 0.7)',  // Verde - Premium
+                'rgba(59, 130, 246, 0.7)',  // Azul - Regulares
+                'rgba(245, 158, 11, 0.7)'   // Naranja - Ocasionales
+            ];
             
-            const ctx = canvas.getContext('2d');
-            if (!ctx) return;
+            // Crear gráfico
+            const ctx = document.getElementById('clientSegmentChart').getContext('2d');
             
-            // Destruir el gráfico existente si existe
-            if (docTypeChart) {
-                docTypeChart.destroy();
-            }
-            
-            // Crear nuevo gráfico
-            docTypeChart = new Chart(ctx, {
-                type: 'pie',
+            chartInstances.clientSegment = new Chart(ctx, {
+                type: 'doughnut',
                 data: {
-                    labels: labels,
+                    labels: segmentData.map(s => s.label),
                     datasets: [{
-                        data: data,
+                        data: segmentData.map(s => Math.abs(s.value)), // Usar valor absoluto para visualización
                         backgroundColor: backgroundColors,
                         borderWidth: 1
                     }]
@@ -944,510 +2208,889 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    cutout: '60%',
                     plugins: {
-                        legend: {
-                            position: 'right',
-                        },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    const percentage = (context.raw / data.reduce((a, b) => a + b, 0) * 100).toFixed(1);
-                                    return context.label + ': ' + formatCLP(context.raw) + ' (' + percentage + '%)';
+                                    const index = context.dataIndex;
+                                    const item = segmentData[index];
+                                    return [
+                                        item.label,
+                                        `Ventas: ${formatCurrency(item.value)}`,
+                                        `${item.percentage.toFixed(1)}% del total`
+                                    ];
                                 }
+                            }
+                        },
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 15,
+                                padding: 15
                             }
                         }
                     }
                 }
             });
+            
+            // Actualizar tabla de segmentación
+            updateSegmentationTable(premiumClients, regularClients, occasionalClients, totalVentas);
+            
+            // Actualizar detalles de clientes por segmento
+            updateClientLists(premiumClients, regularClients, occasionalClients);
         }
-
-        function createTrendChart() {
-            // Agrupar datos por año y mes, separando facturas y notas de crédito
-            const monthlyData = {};
+        
+        // Gráfico 8: Desglose de Montos
+        function createMontoDesglose(data) {
+            // Calcular totales
+            let totalNeto = 0;
+            let totalIva = 0;
+            let totalExento = 0;
             
-            filteredData.forEach(item => {
-                const date = new Date(item.fecha);
-                const year = date.getFullYear();
-                const month = date.getMonth();
-                const yearMonth = `${year}-${(month + 1).toString().padStart(2, '0')}`;
-                
-                if (!monthlyData[yearMonth]) {
-                    monthlyData[yearMonth] = {
-                        facturas: 0,
-                        notasCredito: 0
-                    };
-                }
-                
-                if (item.tipoDocumento === 'NOTA DE CREDITO') {
-                    monthlyData[yearMonth].notasCredito += Math.abs(item.total);
-                } else {
-                    monthlyData[yearMonth].facturas += item.total;
-                }
+            data.forEach(item => {
+                totalNeto += item.montoNeto;
+                totalIva += item.iva;
+                totalExento += item.exento;
             });
-            
-            // Ordenar fechas cronológicamente
-            const sortedMonths = Object.keys(monthlyData).sort();
             
             // Preparar datos para el gráfico
-            const facturaData = [];
-            const ncData = [];
+            const montoData = [
+                {
+                    label: 'Monto Neto',
+                    value: totalNeto
+                },
+                {
+                    label: 'IVA',
+                    value: totalIva
+                },
+                {
+                    label: 'Exento',
+                    value: totalExento
+                }
+            ];
             
-            sortedMonths.forEach(month => {
-                facturaData.push(monthlyData[month].facturas);
-                ncData.push(monthlyData[month].notasCredito);
-            });
+            // Filtrar valores cero o negativos para el gráfico
+            const filteredData = montoData.filter(item => item.value > 0);
             
-            // Formatear etiquetas de meses (mmm-yyyy)
-            const formattedLabels = sortedMonths.map(month => {
-                const [year, monthNum] = month.split('-');
-                const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-                return `${monthNames[parseInt(monthNum) - 1]}-${year}`;
-            });
+            // Colores
+            const backgroundColors = [
+                'rgba(59, 130, 246, 0.7)',  // Azul - Neto
+                'rgba(16, 185, 129, 0.7)',  // Verde - IVA
+                'rgba(139, 92, 246, 0.7)'   // Morado - Exento
+            ];
             
-            // Crear o actualizar el gráfico
-            const canvas = document.getElementById('trendChart');
-            if (!canvas) return;
+            // Crear gráfico
+            const ctx = document.getElementById('montoDesglose').getContext('2d');
             
-            const ctx = canvas.getContext('2d');
-            if (!ctx) return;
-            
-            // Destruir el gráfico existente si existe
-            if (trendChart) {
-                trendChart.destroy();
-            }
-            
-            // Crear nuevo gráfico
-            trendChart = new Chart(ctx, {
-                type: 'line',
+            chartInstances.montoDesglose = new Chart(ctx, {
+                type: 'pie',
                 data: {
-                    labels: formattedLabels,
-                    datasets: [
-                        {
-                            label: 'Ventas',
-                            data: facturaData,
-                            borderColor: 'rgba(52, 152, 219, 1)',
-                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                            fill: true,
-                            tension: 0.3,
-                            yAxisID: 'y'
-                        },
-                        {
-                            label: 'Notas de Crédito',
-                            data: ncData,
-                            borderColor: 'rgba(231, 76, 60, 1)',
-                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
-                            fill: true,
-                            tension: 0.3,
-                            yAxisID: 'y'
-                        }
-                    ]
+                    labels: filteredData.map(m => m.label),
+                    datasets: [{
+                        data: filteredData.map(m => Math.abs(m.value)), // Usar valor absoluto para visualización
+                        backgroundColor: backgroundColors.slice(0, filteredData.length),
+                        borderWidth: 1
+                    }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '$' + (value / 1000000).toFixed(1) + 'M';
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Millones de Pesos'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Mes'
-                            }
-                        }
-                    },
                     plugins: {
-                        legend: {
-                            position: 'top',
-                        },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return context.dataset.label + ': ' + formatCLP(context.raw);
+                                    const value = filteredData[context.dataIndex].value;
+                                    const totalAbs = filteredData.reduce((sum, item) => sum + Math.abs(item.value), 0);
+                                    const percentage = (Math.abs(value) / totalAbs * 100).toFixed(1);
+                                    return `${context.label}: ${formatCurrency(value)} (${percentage}%)`;
                                 }
+                            }
+                        },
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 15,
+                                padding: 15
                             }
                         }
                     }
                 }
             });
+            
+            // Actualizar resumen de montos
+            updateMontosSummary(totalNeto, totalIva, totalExento);
         }
-
-        // Función para crear el mapa de calor
-        function createHeatmap() {
-            // Agrupar datos por año y mes
-            const heatmapData = {};
+        
+        // --- Funciones de análisis y tablas ---
+        
+        // Actualizar todas las secciones de análisis
+        function updateAnalysis(data) {
+            // Análisis de tendencia
+            updateTrendAnalysis(data);
             
-            // Obtener todos los años y meses únicos
-            const uniqueYears = [...new Set(filteredData.map(item => new Date(item.fecha).getFullYear()))].sort();
-            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            // Actualizar montos
+            updateMontosSummary(
+                data.reduce((sum, item) => sum + item.montoNeto, 0),
+                data.reduce((sum, item) => sum + item.iva, 0),
+                data.reduce((sum, item) => sum + item.exento, 0)
+            );
+        }
+        
+        // Actualizar análisis de tendencia
+        function updateTrendAnalysis(data) {
+            if (data.length === 0) {
+                analisisTendencia.innerHTML = `
+                    <li class="analysis-item">
+                        <span class="analysis-indicator">⚠️</span>
+                        <span>No hay datos suficientes para el análisis de tendencias.</span>
+                    </li>
+                `;
+                return;
+            }
             
-            // Inicializar el mapa de calor con todos los meses y años
-            uniqueYears.forEach(year => {
-                heatmapData[year] = Array(12).fill(0);
-            });
+            // Agrupar por mes
+            const monthlyData = {};
             
-            // Sumar ventas por mes y año
-            filteredData.forEach(item => {
-                const date = new Date(item.fecha);
-                const year = date.getFullYear();
-                const month = date.getMonth();
+            data.forEach(item => {
+                const yearMonth = `${item.fecha.getFullYear()}-${(item.fecha.getMonth() + 1).toString().padStart(2, '0')}`;
                 
-                // Solo considerar facturas y facturas exentas (no notas de crédito)
-                if (item.tipoDocumento !== 'NOTA DE CREDITO') {
-                    heatmapData[year][month] += item.total;
+                if (!monthlyData[yearMonth]) {
+                    monthlyData[yearMonth] = {
+                        date: new Date(item.fecha.getFullYear(), item.fecha.getMonth(), 1),
+                        total: 0,
+                        count: 0,
+                        nc: 0,
+                        ncCount: 0
+                    };
+                }
+                
+                monthlyData[yearMonth].total += item.total;
+                monthlyData[yearMonth].count++;
+                
+                if (item.tipoDoc === '61') {
+                    monthlyData[yearMonth].nc += Math.abs(item.total);
+                    monthlyData[yearMonth].ncCount++;
                 }
             });
             
-            // Encontrar el valor máximo para la escala de colores
-            let maxValue = 0;
-            uniqueYears.forEach(year => {
-                const yearMax = Math.max(...heatmapData[year]);
-                if (yearMax > maxValue) maxValue = yearMax;
-            });
+            // Ordenar por fecha
+            const sortedMonths = Object.values(monthlyData).sort((a, b) => a.date - b.date);
             
-            // Crear la tabla del mapa de calor
-            const heatmapContainer = document.getElementById('heatmap-container');
-            if (!heatmapContainer) return;
+            // Análisis de tendencia
+            const analysis = [];
             
-            heatmapContainer.innerHTML = '';
-            
-            const table = document.createElement('table');
-            table.className = 'table';
-            
-            // Crear encabezado
-            const thead = document.createElement('thead');
-            const headerRow = document.createElement('tr');
-            
-            // Celda vacía para la esquina superior izquierda
-            headerRow.appendChild(document.createElement('th'));
-            
-            // Encabezados de mes
-            monthNames.forEach(month => {
-                const th = document.createElement('th');
-                th.textContent = month;
-                headerRow.appendChild(th);
-            });
-            
-            thead.appendChild(headerRow);
-            table.appendChild(thead);
-            
-            // Crear cuerpo de la tabla
-            const tbody = document.createElement('tbody');
-            
-            uniqueYears.forEach(year => {
-                const row = document.createElement('tr');
+            // Comparar último mes vs anterior
+            if (sortedMonths.length >= 2) {
+                const lastMonth = sortedMonths[sortedMonths.length - 1];
+                const previousMonth = sortedMonths[sortedMonths.length - 2];
                 
-                // Encabezado de año
-                const yearCell = document.createElement('th');
-                yearCell.textContent = year;
-                row.appendChild(yearCell);
+                const formatMonth = (date) => date.toLocaleDateString('es-CL', { month: 'long' });
+                const lastMonthName = formatMonth(lastMonth.date);
+                const prevMonthName = formatMonth(previousMonth.date);
                 
-                // Celdas de datos por mes
-                for (let month = 0; month < 12; month++) {
-                    const cell = document.createElement('td');
-                    const value = heatmapData[year][month];
+                const change = ((lastMonth.total - previousMonth.total) / Math.abs(previousMonth.total)) * 100;
+                
+                analysis.push({
+                    icon: change >= 0 ? '📈' : '📉',
+                    iconColor: change >= 0 ? 'var(--color-secondary)' : 'var(--color-danger)',
+                    text: `Las ventas de <strong>${lastMonthName}</strong> ${change >= 0 ? 'aumentaron' : 'disminuyeron'} un <strong>${Math.abs(change).toFixed(1)}%</strong> respecto a ${prevMonthName}.`
+                });
+                
+                // Análisis de notas de crédito
+                if (lastMonth.nc > 0 || previousMonth.nc > 0) {
+                    const ncRatioLast = lastMonth.total !== 0 ? (lastMonth.nc / Math.abs(lastMonth.total)) * 100 : 0;
+                    const ncRatioPrev = previousMonth.total !== 0 ? (previousMonth.nc / Math.abs(previousMonth.total)) * 100 : 0;
                     
-                    // Escala de color basada en el valor
-                    const intensity = maxValue > 0 ? value / maxValue : 0;
-                    const r = Math.round(39 + 192 * intensity);
-                    const g = Math.round(174 - 98 * intensity);
-                    const b = Math.round(96 + 37 * intensity);
+                    const ncChange = ncRatioLast - ncRatioPrev;
                     
-                    cell.className = 'heatmap-cell';
-                    cell.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-                    cell.style.color = intensity > 0.6 ? 'white' : 'black';
-                    cell.textContent = formatCLP(value);
-                    
-                    row.appendChild(cell);
+                    if (Math.abs(ncChange) > 2) { // Solo mostrar si hay cambio significativo
+                        analysis.push({
+                            icon: ncChange <= 0 ? '✅' : '⚠️',
+                            iconColor: ncChange <= 0 ? 'var(--color-secondary)' : 'var(--color-warning)',
+                            text: `El porcentaje de notas de crédito ${ncChange <= 0 ? 'disminuyó' : 'aumentó'} de ${ncRatioPrev.toFixed(1)}% a ${ncRatioLast.toFixed(1)}% (${Math.abs(ncChange).toFixed(1)} puntos).`
+                        });
+                    }
                 }
-                
-                tbody.appendChild(row);
+            }
+            
+            // Análisis día de la semana
+            const salesByDay = Array(7).fill(0);
+            const countByDay = Array(7).fill(0);
+            
+            data.forEach(item => {
+                if (item.tipoDoc !== '61') { // Excluir notas de crédito
+                    const dayOfWeek = item.fecha.getDay();
+                    salesByDay[dayOfWeek] += item.total;
+                    countByDay[dayOfWeek]++;
+                }
             });
             
-            table.appendChild(tbody);
-            heatmapContainer.appendChild(table);
-        }
-
-        // Función para actualizar todo el dashboard
-        function updateDashboard() {
-            try {
-                // Calcular estadísticas
-                calculateStats();
+            const weekDays = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+            
+            // Mejor día de ventas
+            const maxSalesIndex = salesByDay.indexOf(Math.max(...salesByDay));
+            
+            if (salesByDay[maxSalesIndex] > 0) {
+                analysis.push({
+                    icon: '📅',
+                    iconColor: 'var(--color-primary)',
+                    text: `El <strong>${weekDays[maxSalesIndex]}</strong> es el día con mayor volumen de ventas (${formatCurrency(salesByDay[maxSalesIndex])}).`
+                });
                 
-                // Actualizar tabla de datos
-                updateDataTable();
+                // Verificar fin de semana vs días laborales
+                const weekendSales = salesByDay[0] + salesByDay[6]; // Domingo + Sábado
+                const weekdaySales = salesByDay.slice(1, 6).reduce((a, b) => a + b, 0);
                 
-                // Actualizar gráficos
-                createMonthlyChart();
-                createDocTypeChart();
-                createTrendChart();
-                
-                // Crear mapa de calor
-                createHeatmap();
-                
-                console.log("Dashboard actualizado correctamente");
-            } catch (error) {
-                console.error("Error al actualizar el dashboard:", error);
+                if (weekdaySales > 0) {
+                    const avgWeekday = weekdaySales / 5;
+                    const avgWeekend = weekendSales / 2;
+                    
+                    if (avgWeekday > avgWeekend * 1.5) {
+                        analysis.push({
+                            icon: '💡',
+                            iconColor: 'var(--color-warning)',
+                            text: `Las ventas en días laborales son significativamente mayores que en fin de semana. Considere estrategias para impulsar las ventas en fines de semana.`
+                        });
+                    } else if (avgWeekend > avgWeekday * 1.5) {
+                        analysis.push({
+                            icon: '💡',
+                            iconColor: 'var(--color-secondary)',
+                            text: `Las ventas en fin de semana son significativamente mayores que en días laborales. Aproveche esta tendencia para campañas específicas.`
+                        });
+                    }
+                }
+            }
+            
+            // Renderizar análisis
+            if (analysis.length > 0) {
+                analisisTendencia.innerHTML = analysis.map(item => `
+                    <li class="analysis-item">
+                        <span class="analysis-indicator" style="color: ${item.iconColor}">${item.icon}</span>
+                        <span>${item.text}</span>
+                    </li>
+                `).join('');
+            } else {
+                analisisTendencia.innerHTML = `
+                    <li class="analysis-item">
+                        <span class="analysis-indicator">ℹ️</span>
+                        <span>No hay suficientes datos para un análisis detallado de tendencias.</span>
+                    </li>
+                `;
             }
         }
-
-        // Función para exportar a Excel
+        
+        // Actualizar resumen de montos
+        function updateMontosSummary(neto, iva, exento) {
+            const total = neto + iva + exento;
+            
+            const percNeto = total !== 0 ? (neto / Math.abs(total)) * 100 : 0;
+            const percIva = total !== 0 ? (iva / Math.abs(total)) * 100 : 0;
+            const percExento = total !== 0 ? (exento / Math.abs(total)) * 100 : 0;
+            
+            resumenMontos.innerHTML = `
+                <li class="analysis-item">
+                    <span class="analysis-indicator" style="color: var(--color-primary);">📊</span>
+                    <span><strong>Monto Neto:</strong> ${formatCurrency(neto)} (${percNeto.toFixed(1)}%)</span>
+                </li>
+                <li class="analysis-item">
+                    <span class="analysis-indicator" style="color: var(--color-secondary);">📊</span>
+                    <span><strong>IVA:</strong> ${formatCurrency(iva)} (${percIva.toFixed(1)}%)</span>
+                </li>
+                <li class="analysis-item">
+                    <span class="analysis-indicator" style="color: var(--color-accent);">📊</span>
+                    <span><strong>Monto Exento:</strong> ${formatCurrency(exento)} (${percExento.toFixed(1)}%)</span>
+                </li>
+                <li class="analysis-item">
+                    <span class="analysis-indicator">📊</span>
+                    <span><strong>Monto Total:</strong> ${formatCurrency(total)}</span>
+                </li>
+            `;
+        }
+        
+        // Actualizar tabla de documentos
+        function updateDocumentTable(data) {
+            if (data.length === 0) {
+                documentTable.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-3">No hay documentos para mostrar</td>
+                    </tr>
+                `;
+                tableInfo.textContent = 'Mostrando 0 de 0 documentos';
+                return;
+            }
+            
+            // Ordenar datos según la columna y dirección actual
+            const sortedData = [...data].sort((a, b) => {
+                let valueA = a[currentSortColumn];
+                let valueB = b[currentSortColumn];
+                
+                // Manejo especial para algunas columnas
+                if (currentSortColumn === 'cliente') {
+                    valueA = a.cliente || '';
+                    valueB = b.cliente || '';
+                } else if (currentSortColumn === 'fecha') {
+                    valueA = a.fecha;
+                    valueB = b.fecha;
+                }
+                
+                // Comparar según tipo
+                if (typeof valueA === 'string' && typeof valueB === 'string') {
+                    valueA = valueA.toLowerCase();
+                    valueB = valueB.toLowerCase();
+                    return currentSortDirection === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+                } else if (valueA instanceof Date && valueB instanceof Date) {
+                    return currentSortDirection === 'asc' ? valueA - valueB : valueB - valueA;
+                } else {
+                    return currentSortDirection === 'asc' ? valueA - valueB : valueB - valueA;
+                }
+            });
+            
+            // Limitar a MAX_ROWS_TABLE
+            const displayData = sortedData.slice(0, MAX_ROWS_TABLE);
+            
+            // Actualizar tabla
+            documentTable.innerHTML = displayData.map(doc => {
+                // Clases especiales para NC
+                const rowClass = doc.tipoDoc === '61' ? 'table-danger' : '';
+                const fechaStr = doc.fecha.toLocaleDateString('es-CL');
+                
+                return `
+                    <tr class="${rowClass}">
+                        <td>${doc.tipoDoc} ${doc.tipoDoc === '61' ? '(NC)' : ''}</td>
+                        <td>${doc.folio}</td>
+                        <td>${fechaStr}</td>
+                        <td>${doc.cliente}</td>
+                        <td class="text-right">${formatCurrency(doc.montoNeto)}</td>
+                        <td class="text-right">${formatCurrency(doc.exento)}</td>
+                        <td class="text-right">${formatCurrency(doc.iva)}</td>
+                        <td class="text-right"><strong>${formatCurrency(doc.total)}</strong></td>
+                    </tr>
+                `;
+            }).join('');
+            
+            // Actualizar info de paginación
+            tableInfo.textContent = `Mostrando ${displayData.length} de ${sortedData.length} documentos`;
+            
+            // Si hay truncamiento, agregar mensaje
+            if (sortedData.length > MAX_ROWS_TABLE) {
+                const infoRow = document.createElement('tr');
+                infoRow.innerHTML = `
+                    <td colspan="8" class="text-center text-muted small">
+                        <em>Mostrando ${MAX_ROWS_TABLE} de ${sortedData.length} documentos. Cambie el número de registros por página para ver más.</em>
+                    </td>
+                `;
+                documentTable.appendChild(infoRow);
+            }
+        }
+        
+        // Función para cambiar ordenamiento de tabla
+        function sortTable(column) {
+            // Cambiar dirección si es la misma columna
+            if (currentSortColumn === column) {
+                currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortColumn = column;
+                currentSortDirection = 'asc';
+            }
+            
+            // Actualizar UI de ordenamiento
+            document.querySelectorAll('th[data-sort]').forEach(th => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
+            });
+            
+            const th = document.querySelector(`th[data-sort="${column}"]`);
+            if (th) {
+                th.classList.add(currentSortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
+            }
+            
+            // Actualizar tabla con nuevo ordenamiento
+            updateDocumentTable(filteredData.length > 0 ? filteredData : allData);
+        }
+        
+        // --- Funciones para segmentación de clientes ---
+        
+        function segmentClients(data) {
+            // Agrupar ventas por cliente
+            const clientSales = {};
+            
+            data.forEach(item => {
+                const clientKey = item.rut || item.cliente;
+                
+                if (!clientSales[clientKey]) {
+                    clientSales[clientKey] = {
+                        client: item.cliente,
+                        rut: item.rut,
+                        total: 0,
+                        count: 0,
+                        ncCount: 0,
+                        ncValue: 0,
+                        lastPurchase: null
+                    };
+                }
+                
+                clientSales[clientKey].total += item.total;
+                clientSales[clientKey].count++;
+                
+                if (item.tipoDoc === '61') {
+                    clientSales[clientKey].ncCount++;
+                    clientSales[clientKey].ncValue += Math.abs(item.total);
+                }
+                
+                // Actualizar última compra
+                if (!clientSales[clientKey].lastPurchase || item.fecha > clientSales[clientKey].lastPurchase) {
+                    clientSales[clientKey].lastPurchase = item.fecha;
+                }
+            });
+            
+            // Convertir a array y filtrar solo clientes con ventas positivas
+            const clientArray = Object.values(clientSales)
+                .filter(client => client.total > 0)
+                .sort((a, b) => b.total - a.total);
+            
+            // Calcular porcentaje acumulado (principio de Pareto)
+            const totalSales = clientArray.reduce((sum, client) => sum + client.total, 0);
+            let accumulatedPercentage = 0;
+            
+            clientArray.forEach(client => {
+                client.percentage = (client.total / totalSales) * 100;
+                accumulatedPercentage += client.percentage;
+                client.accumulatedPercentage = accumulatedPercentage;
+                
+                // Categorizar según porcentaje acumulado (A: 0-80%, B: 80-95%, C: 95-100%)
+                if (client.accumulatedPercentage <= 80) {
+                    client.segment = 'A';
+                } else if (client.accumulatedPercentage <= 95) {
+                    client.segment = 'B';
+                } else {
+                    client.segment = 'C';
+                }
+            });
+            
+            // Separar por segmento
+            const premiumClients = clientArray.filter(client => client.segment === 'A');
+            const regularClients = clientArray.filter(client => client.segment === 'B');
+            const occasionalClients = clientArray.filter(client => client.segment === 'C');
+            
+            return { premiumClients, regularClients, occasionalClients };
+        }
+        
+        // Actualizar tabla de segmentación
+        function updateSegmentationTable(premiumClients, regularClients, occasionalClients, totalSales) {
+            const calculateSegmentStats = (clients) => {
+                if (clients.length === 0) return { count: 0, sales: 0, percentage: 0, avgTicket: 0 };
+                
+                const sales = clients.reduce((sum, client) => sum + client.total, 0);
+                const docsCount = clients.reduce((sum, client) => sum + client.count - client.ncCount, 0);
+                
+                return {
+                    count: clients.length,
+                    sales: sales,
+                    percentage: totalSales !== 0 ? (sales / totalSales) * 100 : 0,
+                    avgTicket: docsCount > 0 ? sales / docsCount : 0
+                };
+            };
+            
+            const premiumStats = calculateSegmentStats(premiumClients);
+            const regularStats = calculateSegmentStats(regularClients);
+            const occasionalStats = calculateSegmentStats(occasionalClients);
+            
+            segmentationTable.innerHTML = `
+                <tr>
+                    <td>Premium (A)</td>
+                    <td>${premiumStats.count}</td>
+                    <td>${premiumStats.percentage.toFixed(1)}%</td>
+                    <td>${formatCurrency(premiumStats.avgTicket)}</td>
+                </tr>
+                <tr>
+                    <td>Regulares (B)</td>
+                    <td>${regularStats.count}</td>
+                    <td>${regularStats.percentage.toFixed(1)}%</td>
+                    <td>${formatCurrency(regularStats.avgTicket)}</td>
+                </tr>
+                <tr>
+                    <td>Ocasionales (C)</td>
+                    <td>${occasionalStats.count}</td>
+                    <td>${occasionalStats.percentage.toFixed(1)}%</td>
+                    <td>${formatCurrency(occasionalStats.avgTicket)}</td>
+                </tr>
+                <tr class="table-active fw-bold">
+                    <td>Total</td>
+                    <td>${premiumStats.count + regularStats.count + occasionalStats.count}</td>
+                    <td>100%</td>
+                    <td>${formatCurrency(totalSales / (premiumStats.count + regularStats.count + occasionalStats.count))}</td>
+                </tr>
+            `;
+        }
+        
+        // Actualizar listas de clientes por segmento
+        function updateClientLists(premiumClients, regularClients, occasionalClients) {
+            // Clientes Premium
+            if (premiumClients.length > 0) {
+                premiumClientList.innerHTML = premiumClients.map(client => `
+                    <div class="cliente-card premium">
+                        <h4 class="cliente-nombre">${client.client || 'Cliente sin nombre'}</h4>
+                        <div class="cliente-dato">
+                            <span class="cliente-dato-label">Ventas Totales:</span>
+                            <span class="cliente-dato-value">${formatCurrency(client.total)}</span>
+                        </div>
+                        <div class="cliente-dato">
+                            <span class="cliente-dato-label">% del Total:</span>
+                            <span class="cliente-dato-value">${client.percentage.toFixed(1)}%</span>
+                        </div>
+                        <div class="cliente-dato">
+                            <span class="cliente-dato-label">Documentos:</span>
+                            <span class="cliente-dato-value">${client.count} (NC: ${client.ncCount})</span>
+                        </div>
+                        <div class="cliente-dato">
+                            <span class="cliente-dato-label">Última Compra:</span>
+                            <span class="cliente-dato-value">${client.lastPurchase ? client.lastPurchase.toLocaleDateString('es-CL') : 'N/A'}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                premiumClientList.innerHTML = `
+                    <div class="alert alert-info">
+                        No hay clientes en el segmento Premium (A) para el período seleccionado.
+                    </div>
+                `;
+            }
+            
+            // Clientes Regulares
+            if (regularClients.length > 0) {
+                regularClientList.innerHTML = regularClients.map(client => `
+                    <div class="cliente-card regular">
+                        <h4 class="cliente-nombre">${client.client || 'Cliente sin nombre'}</h4>
+                        <div class="cliente-dato">
+                            <span class="cliente-dato-label">Ventas Totales:</span>
+                            <span class="cliente-dato-value">${formatCurrency(client.total)}</span>
+                        </div>
+                        <div class="cliente-dato">
+                            <span class="cliente-dato-label">% del Total:</span>
+                            <span class="cliente-dato-value">${client.percentage.toFixed(1)}%</span>
+                        </div>
+                        <div class="cliente-dato">
+                            <span class="cliente-dato-label">Documentos:</span>
+                            <span class="cliente-dato-value">${client.count}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                regularClientList.innerHTML = `
+                    <div class="alert alert-info">
+                        No hay clientes en el segmento Regular (B) para el período seleccionado.
+                    </div>
+                `;
+            }
+            
+            // Estadísticas de Clientes Ocasionales
+            if (occasionalClients.length > 0) {
+                const totalOccasionalSales = occasionalClients.reduce((sum, client) => sum + client.total, 0);
+                const avgOccasionalSale = totalOccasionalSales / occasionalClients.length;
+                const minSale = Math.min(...occasionalClients.map(client => client.total));
+                const maxSale = Math.max(...occasionalClients.map(client => client.total));
+                
+                occasionalStats.innerHTML = `
+                    <li class="analysis-item">
+                        <span class="analysis-indicator">📊</span>
+                        <span><strong>${occasionalClients.length}</strong> clientes ocasionales identificados.</span>
+                    </li>
+                    <li class="analysis-item">
+                        <span class="analysis-indicator">💰</span>
+                        <span>Venta promedio por cliente: <strong>${formatCurrency(avgOccasionalSale)}</strong></span>
+                    </li>
+                    <li class="analysis-item">
+                        <span class="analysis-indicator">↕️</span>
+                        <span>Rango de ventas: <strong>${formatCurrency(minSale)}</strong> a <strong>${formatCurrency(maxSale)}</strong></span>
+                    </li>
+                    <li class="analysis-item">
+                        <span class="analysis-indicator">💡</span>
+                        <span>Este segmento representa aproximadamente el <strong>5%</strong> de las ventas totales, pero el <strong>${Math.round(occasionalClients.length / (premiumClients.length + regularClients.length + occasionalClients.length) * 100)}%</strong> de la base de clientes.</span>
+                    </li>
+                `;
+            } else {
+                occasionalStats.innerHTML = `
+                    <li class="analysis-item">
+                        <span class="analysis-indicator">ℹ️</span>
+                        <span>No hay clientes en el segmento Ocasional (C) para el período seleccionado.</span>
+                    </li>
+                `;
+            }
+        }
+        
+        // --- Funciones de exportación ---
+        
+        // Exportar a Excel
         function exportToExcel() {
+            const exportData = filteredData.length > 0 ? filteredData : allData;
+            
+            if (exportData.length === 0) {
+                alert('No hay datos para exportar');
+                return;
+            }
+            
+            toggleLoading(true);
+            
             try {
-                // Crear workbook
+                // Crear libro de trabajo
                 const wb = XLSX.utils.book_new();
                 
-                // Crear worksheet para los datos
-                const wsData = [
-                    ['Fecha', 'Tipo Documento', 'Folio', 'Razón Social', 'Monto Neto', 'Exento', 'IVA', 'Total']
+                // Datos para la hoja de documentos
+                const docData = [
+                    ['Tipo Doc', 'Folio', 'Fecha', 'Cliente', 'RUT', 'Monto Neto', 'Exento', 'IVA', 'Total']
                 ];
                 
-                filteredData.forEach(item => {
-                    wsData.push([
-                        item.fecha,
-                        item.tipoDocumento,
-                        item.folio,
-                        item.razonSocial,
-                        item.montoNeto,
-                        item.exento,
-                        item.iva,
-                        item.total
+                exportData.forEach(doc => {
+                    docData.push([
+                        doc.tipoDoc,
+                        doc.folio,
+                        doc.fecha.toLocaleDateString('es-CL'),
+                        doc.cliente,
+                        doc.rut,
+                        doc.montoNeto,
+                        doc.exento,
+                        doc.iva,
+                        doc.total
                     ]);
                 });
                 
-                const ws = XLSX.utils.aoa_to_sheet(wsData);
+                // Crear hoja de documentos
+                const ws = XLSX.utils.aoa_to_sheet(docData);
                 
-                // Aplicar estilos a las celdas (encabezados en negrita)
+                // Establecer anchos de columna
                 ws['!cols'] = [
-                    { wch: 12 }, // Fecha
-                    { wch: 20 }, // Tipo Documento
-                    { wch: 10 }, // Folio
-                    { wch: 30 }, // Razón Social
-                    { wch: 15 }, // Monto Neto
-                    { wch: 15 }, // Exento
-                    { wch: 15 }, // IVA
-                    { wch: 15 }  // Total
+                    { wch: 10 },  // Tipo Doc
+                    { wch: 10 },  // Folio
+                    { wch: 12 },  // Fecha
+                    { wch: 30 },  // Cliente
+                    { wch: 15 },  // RUT
+                    { wch: 15 },  // Monto Neto
+                    { wch: 15 },  // Exento
+                    { wch: 15 },  // IVA
+                    { wch: 15 }   // Total
                 ];
                 
-                // Añadir la hoja al libro
-                XLSX.utils.book_append_sheet(wb, ws, 'Datos');
+                XLSX.utils.book_append_sheet(wb, ws, 'Documentos');
                 
-                // Crear hoja para estadísticas
-                const stats = calculateStats();
-                const wsStats = XLSX.utils.aoa_to_sheet([
-                    ['Indicador', 'Valor'],
-                    ['Total Facturado', stats.totalFacturado],
-                    ['Total Neto + Exento', stats.totalNeto + stats.totalExento],
-                    ['Ventas Brutas', stats.ventasBrutas],
-                    ['Ventas Netas', stats.ventasNetas],
-                    ['Total Notas de Crédito', stats.totalNC]
+                // Crear hoja de resumen
+                const { premiumClients, regularClients, occasionalClients } = segmentClients(exportData);
+                
+                // Datos para la hoja de resumen
+                const summaryData = [
+                    ['Estadísticas Generales', ''],
+                    ['Total Documentos', exportData.length],
+                    ['Total Ventas', exportData.reduce((sum, doc) => sum + doc.total, 0)],
+                    ['Total Neto', exportData.reduce((sum, doc) => sum + doc.montoNeto, 0)],
+                    ['Total IVA', exportData.reduce((sum, doc) => sum + doc.iva, 0)],
+                    ['Total Exento', exportData.reduce((sum, doc) => sum + doc.exento, 0)],
+                    ['Notas de Crédito', exportData.filter(doc => doc.tipoDoc === '61').length],
+                    ['Valor Notas de Crédito', Math.abs(exportData
+                        .filter(doc => doc.tipoDoc === '61')
+                        .reduce((sum, doc) => sum + doc.total, 0))],
+                    ['', ''],
+                    ['Segmentación de Clientes', ''],
+                    ['Clientes Premium (A)', premiumClients.length],
+                    ['Ventas Premium', premiumClients.reduce((sum, client) => sum + client.total, 0)],
+                    ['Clientes Regulares (B)', regularClients.length],
+                    ['Ventas Regulares', regularClients.reduce((sum, client) => sum + client.total, 0)],
+                    ['Clientes Ocasionales (C)', occasionalClients.length],
+                    ['Ventas Ocasionales', occasionalClients.reduce((sum, client) => sum + client.total, 0)]
+                ];
+                
+                // Crear hoja de resumen
+                const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+                
+                // Establecer anchos de columna
+                wsSummary['!cols'] = [
+                    { wch: 25 },  // Concepto
+                    { wch: 15 }   // Valor
+                ];
+                
+                XLSX.utils.book_append_sheet(wb, wsSummary, 'Resumen');
+                
+                // Descargar el archivo
+                const fileName = `Reporte_Tributario_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+                
+                alert(`Archivo ${fileName} exportado correctamente`);
+                
+            } catch (error) {
+                console.error('Error al exportar a Excel:', error);
+                alert('Error al exportar a Excel: ' + error.message);
+            } finally {
+                toggleLoading(false);
+            }
+        }
+        
+        // Exportar a PDF
+        function exportToPdf() {
+            const exportData = filteredData.length > 0 ? filteredData : allData;
+            
+            if (exportData.length === 0) {
+                alert('No hay datos para exportar');
+                return;
+            }
+            
+            toggleLoading(true);
+            
+            try {
+                // Importar jsPDF desde el objeto global
+                const { jsPDF } = window.jspdf;
+                
+                // Crear documento en orientación horizontal
+                const doc = new jsPDF('l', 'mm', 'a4');
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const margin = 10;
+                
+                // Establecer título
+                doc.setFontSize(18);
+                doc.setTextColor(40, 40, 40);
+                doc.text('Reporte Tributario', margin, margin + 10);
+                
+                // Fecha y rango de datos
+                doc.setFontSize(11);
+                doc.setTextColor(100, 100, 100);
+                
+                // Obtener rango de fechas
+                const dates = exportData.map(item => item.fecha);
+                const minDate = new Date(Math.min(...dates));
+                const maxDate = new Date(Math.max(...dates));
+                const minDateStr = minDate.toLocaleDateString('es-CL');
+                const maxDateStr = maxDate.toLocaleDateString('es-CL');
+                
+                doc.text(`Generado el: ${new Date().toLocaleDateString('es-CL')}`, margin, margin + 18);
+                doc.text(`Rango de datos: ${minDateStr} - ${maxDateStr}`, margin, margin + 25);
+                
+                // Resumen de métricas
+                doc.setFontSize(14);
+                doc.setTextColor(40, 40, 40);
+                doc.text('Métricas Principales', margin, margin + 35);
+                
+                // Calcular métricas
+                const totalVentas = exportData.reduce((sum, doc) => sum + doc.total, 0);
+                const totalNeto = exportData.reduce((sum, doc) => sum + doc.montoNeto, 0);
+                const totalExento = exportData.reduce((sum, doc) => sum + doc.exento, 0);
+                const totalIva = exportData.reduce((sum, doc) => sum + doc.iva, 0);
+                const totalNC = Math.abs(exportData
+                    .filter(doc => doc.tipoDoc === '61')
+                    .reduce((sum, doc) => sum + doc.total, 0));
+                
+                // Tabla de métricas
+                doc.setFontSize(11);
+                const metricsData = [
+                    ['Métrica', 'Valor'],
+                    ['Total Facturado', formatCurrency(totalVentas)],
+                    ['Total Neto + Exento', formatCurrency(totalNeto + totalExento)],
+                    ['Total IVA', formatCurrency(totalIva)],
+                    ['Notas de Crédito', formatCurrency(totalNC)],
+                    ['Docs. Emitidos', exportData.length.toString()]
+                ];
+                
+                const metricsTableX = margin;
+                const metricsTableY = margin + 40;
+                doc.autoTable({
+                    head: [metricsData[0]],
+                    body: metricsData.slice(1),
+                    startY: metricsTableY,
+                    theme: 'grid',
+                    headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+                    styles: { fontSize: 10 },
+                    margin: { top: margin, right: margin, bottom: margin, left: margin }
+                });
+                
+                // Tabla de documentos
+                doc.addPage();
+                doc.setFontSize(14);
+                doc.setTextColor(40, 40, 40);
+                doc.text('Listado de Documentos', margin, margin + 10);
+                
+                // Limitar a 100 documentos para el PDF
+                const limitedDocs = exportData.slice(0, 100);
+                
+                // Preparar datos para la tabla
+                const docTableData = limitedDocs.map(doc => [
+                    doc.tipoDoc,
+                    doc.folio,
+                    doc.fecha.toLocaleDateString('es-CL'),
+                    doc.cliente.substring(0, 20) + (doc.cliente.length > 20 ? '...' : ''),
+                    formatCurrency(doc.montoNeto),
+                    formatCurrency(doc.iva),
+                    formatCurrency(doc.total)
                 ]);
                 
-                wsStats['!cols'] = [
-                    { wch: 25 }, // Indicador
-                    { wch: 20 }  // Valor
-                ];
+                // Encabezados de la tabla
+                const docHeaders = [['Tipo', 'Folio', 'Fecha', 'Cliente', 'Neto', 'IVA', 'Total']];
                 
-                // Añadir la hoja de estadísticas al libro
-                XLSX.utils.book_append_sheet(wb, wsStats, 'Estadísticas');
+                doc.autoTable({
+                    head: docHeaders,
+                    body: docTableData,
+                    startY: margin + 15,
+                    theme: 'grid',
+                    headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+                    styles: { fontSize: 8 },
+                    margin: { top: margin, right: margin, bottom: margin, left: margin }
+                });
                 
-                // Exportar a archivo
-                XLSX.writeFile(wb, 'reporte_tributario.xlsx');
-            } catch (error) {
-                console.error("Error al exportar a Excel:", error);
-                alert("Error al exportar a Excel. Por favor, intente nuevamente.");
-            }
-        }
-
-        // Función para exportar a PDF
-        function exportToPDF() {
-            // Mostrar indicador de carga
-            showLoadingSpinner();
-            
-            try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('l', 'mm', 'a4');
-                
-                // Título
-                doc.setFontSize(16);
-                doc.text('Reporte Tributario', 14, 15);
-                
-                // Fecha de generación
-                doc.setFontSize(10);
-                const now = new Date();
-                doc.text(`Generado el: ${now.toLocaleDateString('es-CL')}`, 14, 22);
-                
-                // Estadísticas
-                let yPos = 30;
-                doc.setFontSize(12);
-                doc.text('Estadísticas', 14, yPos);
-                yPos += 8;
-                
-                doc.setFontSize(10);
-                const stats = calculateStats();
-                doc.text(`Total Facturado: ${formatCLP(stats.totalFacturado)}`, 14, yPos);
-                yPos += 6;
-                doc.text(`Total Neto + Exento: ${formatCLP(stats.totalNeto + stats.totalExento)}`, 14, yPos);
-                yPos += 6;
-                doc.text(`Ventas Brutas: ${formatCLP(stats.ventasBrutas)}`, 14, yPos);
-                yPos += 6;
-                doc.text(`Ventas Netas: ${formatCLP(stats.ventasNetas)}`, 14, yPos);
-                yPos += 6;
-                doc.text(`Total Notas de Crédito: ${formatCLP(stats.totalNC)}`, 14, yPos);
-                yPos += 10;
-                
-                // Nueva página para datos
-                doc.addPage();
-                
-                // Tabla de datos (simplificada)
-                doc.setFontSize(12);
-                doc.text('Detalle de Transacciones', 14, 15);
-                
-                // Encabezados de tabla
-                const headers = ['Fecha', 'Tipo Doc.', 'Folio', 'Razón Social', 'Neto', 'Total'];
-                let startY = 25;
-                let rowHeight = 7;
-                
-                doc.setFontSize(10);
-                doc.setTextColor(0, 0, 0);
-                
-                // Dibujar encabezados
-                const columnWidths = [20, 30, 20, 60, 30, 30];
-                let currentX = 14;
-                
-                for (let i = 0; i < headers.length; i++) {
-                    doc.text(headers[i], currentX, startY);
-                    currentX += columnWidths[i];
-                }
-                
-                // Línea debajo de los encabezados
-                doc.line(14, startY + 2, 280, startY + 2);
-                
-                // Limitar a 30 filas para la versión PDF
-                const limitedData = filteredData.slice(0, 30);
-                startY += 2;
-                
-                // Dibujar filas de datos
-                for (let i = 0; i < limitedData.length; i++) {
-                    const item = limitedData[i];
-                    startY += rowHeight;
-                    
-                    // Si llegamos al final de la página, crear una nueva
-                    if (startY > 200) {
-                        doc.addPage();
-                        startY = 25;
-                        
-                        // Volver a dibujar encabezados
-                        currentX = 14;
-                        for (let j = 0; j < headers.length; j++) {
-                            doc.text(headers[j], currentX, startY);
-                            currentX += columnWidths[j];
-                        }
-                        
-                        // Línea debajo de los encabezados
-                        doc.line(14, startY + 2, 280, startY + 2);
-                        startY += 2;
-                    }
-                    
-                    // Formatear fecha en formato dd-mm-yyyy
-                    const fechaParts = item.fecha.split('-');
-                    const fechaFormateada = `${fechaParts[2]}-${fechaParts[1]}-${fechaParts[0]}`;
-                    
-                    // Versión abreviada del tipo de documento
-                    let tipoDocAbrev = item.tipoDocumento;
-                    if (tipoDocAbrev === 'FACTURA') tipoDocAbrev = 'FAC';
-                    else if (tipoDocAbrev === 'FACTURA EXENTA') tipoDocAbrev = 'FAC EX';
-                    else if (tipoDocAbrev === 'NOTA DE CREDITO') tipoDocAbrev = 'N/C';
-                    else if (tipoDocAbrev === 'NOTA DE DEBITO') tipoDocAbrev = 'N/D';
-                    
-                    // Datos abreviados para la razón social
-                    const razonSocialAbrev = item.razonSocial.length > 30 ? 
-                        item.razonSocial.substring(0, 27) + '...' : 
-                        item.razonSocial;
-                    
-                    // Dibujar fila
-                    currentX = 14;
-                    doc.text(fechaFormateada, currentX, startY);
-                    currentX += columnWidths[0];
-                    
-                    doc.text(tipoDocAbrev, currentX, startY);
-                    currentX += columnWidths[1];
-                    
-                    doc.text(item.folio.toString(), currentX, startY);
-                    currentX += columnWidths[2];
-                    
-                    doc.text(razonSocialAbrev, currentX, startY);
-                    currentX += columnWidths[3];
-                    
-                    doc.text(formatCLP(item.montoNeto), currentX, startY);
-                    currentX += columnWidths[4];
-                    
-                    doc.text(formatCLP(item.total), currentX, startY);
-                }
-                
-                // Nota sobre datos limitados
-                if (filteredData.length > 30) {
+                // Si hay truncamiento, agregar nota
+                if (exportData.length > 100) {
+                    const currentY = doc.previousAutoTable.finalY + 5;
                     doc.setFontSize(9);
                     doc.setTextColor(100, 100, 100);
-                    doc.text(`Nota: Mostrando 30 de ${filteredData.length} registros. Exporte a Excel para ver todos los datos.`, 14, 195);
+                    doc.text(`Nota: Se muestran solo los primeros 100 documentos de un total de ${exportData.length}.`, 
+                             margin, currentY);
                 }
                 
-                // Guardar PDF
-                doc.save('reporte_tributario.pdf');
+                // Guardar el archivo
+                const fileName = `Reporte_Tributario_${new Date().toISOString().slice(0, 10)}.pdf`;
+                doc.save(fileName);
+                
+                alert(`Archivo ${fileName} exportado correctamente`);
+                
             } catch (error) {
-                console.error('Error al generar PDF:', error);
-                alert('Error al generar el PDF. Por favor intente nuevamente.');
+                console.error('Error al exportar a PDF:', error);
+                alert('Error al exportar a PDF: ' + error.message);
             } finally {
-                // Ocultar indicador de carga
-                hideLoadingSpinner();
+                toggleLoading(false);
             }
         }
-
-        // Configurar eventos cuando el DOM esté cargado
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("DOM completamente cargado");
+        
+        // --- Funciones de utilidad ---
+        
+        // Formatear moneda (CLP)
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('es-CL', {
+                style: 'currency',
+                currency: 'CLP',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+        
+        // Formatear moneda abreviada (para ejes de gráficos)
+        function formatCurrencyShort(value) {
+            // Determinar el sufijo y escala
+            let suffix = '';
+            let scaledValue = value;
             
-            try {
-                // Configurar los event listeners
-                const applyFiltersBtn = document.getElementById('apply-filters');
-                if (applyFiltersBtn) {
-                    applyFiltersBtn.addEventListener('click', applyFilters);
-                }
-                
-                const resetFiltersBtn = document.getElementById('reset-filters');
-                if (resetFiltersBtn) {
-                    resetFiltersBtn.addEventListener('click', resetFilters);
-                }
-                
-                const exportExcelBtn = document.getElementById('export-excel');
-                if (exportExcelBtn) {
-                    exportExcelBtn.addEventListener('click', exportToExcel);
-                }
-                
-                const exportPdfBtn = document.getElementById('export-pdf');
-                if (exportPdfBtn) {
-                    exportPdfBtn.addEventListener('click', exportToPDF);
-                }
-                
-                // Cargar datos de ejemplo
-                loadSampleData();
-                
-                // Ocultar el spinner de carga después de que todo esté cargado
-                setTimeout(hideLoadingSpinner, 1000);
-            } catch (error) {
-                console.error("Error durante la inicialización:", error);
-                hideLoadingSpinner();
+            if (Math.abs(value) >= 1e9) {
+                suffix = 'MM';
+                scaledValue = value / 1e9;
+            } else if (Math.abs(value) >= 1e6) {
+                suffix = 'M';
+                scaledValue = value / 1e6;
+            } else if (Math.abs(value) >= 1e3) {
+                suffix = 'K';
+                scaledValue = value / 1e3;
             }
-        });
+            
+            // Formatear con 1 decimal si es necesario
+            const formattedValue = Math.abs(scaledValue) < 10 
+                ? scaledValue.toFixed(1).replace(/\.0$/, '') 
+                : Math.round(scaledValue);
+            
+            // Agregar signo peso y manejar valores negativos
+            return `${value < 0 ? '-' : ''}${formattedValue}${suffix}`;
+        }
     </script>
 </body>
 </html>
