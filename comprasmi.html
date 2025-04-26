@@ -911,15 +911,13 @@
                 <div class="stat-card">
                     <div class="stat-title">IVA Total</div>
                     <div id="total-iva" class="stat-value">$0</div>
-                    <div id="total-iva-subtitle" class="stat-subtitle">0% recuperable</div>
+                    <div id="total-iva-subtitle" class="stat-subtitle">Calculado</div>
                     <div id="trend-iva" class="stat-trend trend-neutral">
                         <i class="fas fa-equals trend-icon"></i> Comparativa mensual
                     </div>
                     <i class="fas fa-percentage stat-icon"></i>
                 </div>
-            </div>
-
-            <!-- Comparativo Anual -->
+            </div><!-- Comparativo Anual -->
             <div class="section">
                 <div class="section-header">
                     <h2 class="section-title"><i class="fas fa-chart-bar"></i> Análisis Comparativo</h2>
@@ -1169,7 +1167,7 @@ loginForm.addEventListener('submit', function(e) {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     
-    if (username === 'admin' && password === '123456') {
+    if (username === 'prueba' && password === '123#') {
         // Login exitoso
         loginSection.classList.add('hidden');
         mainContent.classList.remove('hidden');
@@ -1290,7 +1288,17 @@ async function fetchData() {
             throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
         }
         
-        const data = await response.json();
+        const responseData = await response.json();
+        
+        // Verificar formato de respuesta y extraer el array de datos
+        let data;
+        if (responseData.body && Array.isArray(responseData.body)) {
+            data = responseData.body;
+        } else if (Array.isArray(responseData)) {
+            data = responseData;
+        } else {
+            throw new Error('Formato de datos no reconocido');
+        }
         
         if (!Array.isArray(data)) {
             throw new Error('La respuesta recibida no es un array');
@@ -1326,6 +1334,24 @@ function resetUI() {
     pagination.innerHTML = '';
 }
 
+// Mapear códigos de documentos a nombres
+function mapTipoDocumento(tipoDoc) {
+    const tiposDoc = {
+        33: 'Factura Electrónica',
+        34: 'Factura Exenta Electrónica',
+        61: 'Nota de Crédito Electrónica',
+        56: 'Nota de Débito Electrónica',
+        46: 'Factura de Compra Electrónica',
+        43: 'Liquidación Factura Electrónica'
+    };
+    
+    return tiposDoc[tipoDoc] || `Tipo ${tipoDoc}`;
+}
+
+
+
+
+
 // Función para procesar datos recibidos
 function processData(data) {
     // Mapear datos a formato más conveniente
@@ -1333,7 +1359,9 @@ function processData(data) {
         // Procesar fecha
         let fechaDocto;
         try {
-            fechaDocto = new Date(item['Fecha Docto'] || '');
+            // Adaptar a los nombres de campos de la nueva API
+            const fechaStr = item['Fecha_x0020_Docto'] || '';
+            fechaDocto = new Date(fechaStr);
             if (isNaN(fechaDocto.getTime())) { // Verificar si la fecha es válida
                 fechaDocto = new Date(); // Usar fecha actual como fallback
             }
@@ -1342,37 +1370,31 @@ function processData(data) {
         }
         
         // Determinar si es nota de crédito
-        const tipoDoc = parseInt(item['Tipo Doc'] || 0);
+        const tipoDoc = parseInt(item['Tipo_x0020_Doc'] || 0);
         const esNotaCredito = tipoDoc === 61;
         
-        // Calcular valores de IVA
-        const montoNeto = parseFloat(item['Monto Neto'] || 0);
-        const montoExento = parseFloat(item['Monto Exento'] || 0);
-        const montoIVARecuperable = parseFloat(item['Monto IVA Recuperable'] || 0);
-        const montoIVANoRecuperable = parseFloat(item['Monto Iva No Recuperable'] || 0);
-        const montoTotal = parseFloat(item['Monto Total'] || 0);
+        // Calcular valores
+        const montoNeto = parseFloat(item['Monto_x0020_Neto'] || 0);
+        const montoExento = parseFloat(item['Monto_x0020_Exento'] || 0);
+        const montoTotal = parseFloat(item['Monto_x0020_Total'] || 0);
+        
+        // Calcular IVA como la diferencia entre total y (neto + exento)
+        // Ya que IVA recuperable y no recuperable no están disponibles
+        const montoIVA = montoTotal - (montoNeto + montoExento);
+        
         const tipoDocName = mapTipoDocumento(tipoDoc);
         
         return {
-            nro: item['Nro'] || 0,
+            rutProveedor: item['RUT_x0020_Proveedor'] || 'N/A',
+            razonSocial: item['Razon_x0020_Social'] || 'N/A',
             tipoDoc: tipoDoc,
             tipoDocName: tipoDocName,
-            tipoCompra: item['Tipo Compra'] || 'N/A',
-            rutProveedor: item['RUT Proveedor'] || 'N/A',
-            razonSocial: item['Razon Social'] || 'N/A',
             folio: item['Folio'] || 'N/A',
             fechaDocto: fechaDocto,
-            fechaRecepcion: new Date(item['Fecha Recepcion'] || fechaDocto),
-            fechaAcuse: new Date(item['Fecha Acuse'] || fechaDocto),
             montoExento: montoExento,
             montoNeto: montoNeto,
-            montoIVARecuperable: montoIVARecuperable,
-            montoIVANoRecuperable: montoIVANoRecuperable,
-            montoIVA: montoIVARecuperable + montoIVANoRecuperable,
+            montoIVA: montoIVA,
             montoTotal: montoTotal,
-            montoNetoActivoFijo: parseFloat(item['Monto Neto Activo Fijo'] || 0),
-            ivaActivoFijo: parseFloat(item['IVA Activo Fijo'] || 0),
-            ivaUsoComun: parseFloat(item['IVA uso Comun'] || 0),
             anio: fechaDocto.getFullYear(),
             mes: String(fechaDocto.getMonth() + 1).padStart(2, '0'),
             dia: fechaDocto.getDate(),
@@ -1392,20 +1414,6 @@ function processData(data) {
     
     // Aplicar filtros (inicialmente muestra todo)
     applyFilters();
-}
-
-// Mapear códigos de documentos a nombres
-function mapTipoDocumento(tipoDoc) {
-    const tiposDoc = {
-        33: 'Factura Electrónica',
-        34: 'Factura Exenta Electrónica',
-        61: 'Nota de Crédito Electrónica',
-        56: 'Nota de Débito Electrónica',
-        46: 'Factura de Compra Electrónica',
-        43: 'Liquidación Factura Electrónica'
-    };
-    
-    return tiposDoc[tipoDoc] || `Tipo ${tipoDoc}`;
 }
 
 // Actualizar opciones de filtros
@@ -1494,20 +1502,12 @@ function updateStats() {
                           notasCredito.reduce((sum, item) => sum + item.montoNeto, 0);
     
     // Calcular IVA
-    const totalIVARecuperable = facturas.reduce((sum, item) => sum + item.montoIVARecuperable, 0) - 
-                               notasCredito.reduce((sum, item) => sum + item.montoIVARecuperable, 0);
-    
-    const totalIVANoRecuperable = facturas.reduce((sum, item) => sum + item.montoIVANoRecuperable, 0) - 
-                                 notasCredito.reduce((sum, item) => sum + item.montoIVANoRecuperable, 0);
-    
-    const totalIVA = totalIVARecuperable + totalIVANoRecuperable;
+    const totalIVA = facturas.reduce((sum, item) => sum + item.montoIVA, 0) - 
+                     notasCredito.reduce((sum, item) => sum + item.montoIVA, 0);
     
     // Contar documentos
     const totalFacturasCount = facturas.length;
     const totalNCCount = notasCredito.length;
-    
-    // Calcular porcentajes
-    const porcentajeIVARecuperable = totalIVA > 0 ? (totalIVARecuperable / totalIVA * 100) : 0;
     
     // Actualizar valores en UI
     document.getElementById('total-compras').textContent = formatCurrency(totalCompras);
@@ -1520,7 +1520,7 @@ function updateStats() {
     document.getElementById('monto-neto-subtitle').textContent = `Neto total después de notas de crédito`;
     
     document.getElementById('total-iva').textContent = formatCurrency(totalIVA);
-    document.getElementById('total-iva-subtitle').textContent = `${formatPercent(porcentajeIVARecuperable)} recuperable`;
+    document.getElementById('total-iva-subtitle').textContent = `IVA calculado`;
     
     // Simulación de tendencias
     const trendCompras = Math.random() * 20 - 5; // Entre -5% y 15%
@@ -2146,9 +2146,6 @@ function updateTable() {
         // Truncar nombre del proveedor para mostrar
         const proveedorTruncado = truncateText(item.razonSocial, 30);
         
-        // Calcular IVA total (recuperable + no recuperable)
-        const montoIVA = item.montoIVARecuperable + item.montoIVANoRecuperable;
-        
         row.innerHTML = `
             <td>${item.folio}</td>
             <td>${fechaFormateada}</td>
@@ -2156,7 +2153,7 @@ function updateTable() {
             <td title="${item.razonSocial}"><span class="truncate-text">${proveedorTruncado}</span></td>
             <td>${formatCurrency(item.montoNeto)}</td>
             <td>${formatCurrency(item.montoExento)}</td>
-            <td>${formatCurrency(montoIVA)}</td>
+            <td>${formatCurrency(item.montoIVA)}</td>
             <td>${formatCurrency(item.montoTotal)}</td>
         `;
         
@@ -2275,47 +2272,33 @@ function updateKeyMetrics() {
     const metricsContainer = document.getElementById('key-metrics-container');
     metricsContainer.innerHTML = '';
     
-    // 1. Distribución por tipo de IVA
-    const totalIVARecuperable = filteredData.reduce((sum, item) => {
+    // 1. Calcular IVA promedio
+    const totalIVA = filteredData.reduce((sum, item) => {
         const factor = item.esNotaCredito ? -1 : 1;
-        return sum + (item.montoIVARecuperable * factor);
+        return sum + (item.montoIVA * factor);
     }, 0);
     
-    const totalIVANoRecuperable = filteredData.reduce((sum, item) => {
+    const totalMontoNeto = filteredData.reduce((sum, item) => {
         const factor = item.esNotaCredito ? -1 : 1;
-        return sum + (item.montoIVANoRecuperable * factor);
+        return sum + (item.montoNeto * factor);
     }, 0);
     
-    const totalIVA = totalIVARecuperable + totalIVANoRecuperable;
+    const pctIVA = totalMontoNeto > 0 ? (totalIVA / totalMontoNeto) * 100 : 0;
     
     const metricaDistribucionIVA = document.createElement('div');
     metricaDistribucionIVA.className = 'analysis-metric';
-    
-    let pctIVARecuperable = 0;
-    let pctIVANoRecuperable = 0;
-    
-    if (totalIVA > 0) {
-        pctIVARecuperable = (totalIVARecuperable / totalIVA) * 100;
-        pctIVANoRecuperable = (totalIVANoRecuperable / totalIVA) * 100;
-    }
-    
     metricaDistribucionIVA.innerHTML = `
-        <div class="metric-title">Distribución del IVA</div>
-        <div class="metric-value">Recuperable: ${formatPercent(pctIVARecuperable)}</div>
+        <div class="metric-title">Porcentaje IVA</div>
+        <div class="metric-value">${formatPercent(pctIVA)}</div>
         <div class="metric-info">
-            No Recuperable: ${formatPercent(pctIVANoRecuperable)} | 
-            Total: ${formatCurrency(totalIVA)}
+            IVA Total: ${formatCurrency(totalIVA)} | 
+            Monto Neto: ${formatCurrency(totalMontoNeto)}
         </div>
     `;
     metricsContainer.appendChild(metricaDistribucionIVA);
     
     // 2. Promedio por Documento
     const totalDocs = filteredData.filter(item => !item.esNotaCredito).length;
-    const totalMontoNeto = filteredData.reduce((sum, item) => {
-        const factor = item.esNotaCredito ? -1 : 1;
-        return sum + (item.montoNeto * factor);
-    }, 0);
-    
     const promedioDoc = totalDocs > 0 ? totalMontoNeto / totalDocs : 0;
     
     const metricaPromedioDoc = document.createElement('div');
@@ -2350,30 +2333,24 @@ function updateKeyMetrics() {
     `;
     metricsContainer.appendChild(metricaNC);
     
-    // 4. Activo Fijo
-    const totalActivoFijo = filteredData.reduce((sum, item) => {
-        const factor = item.esNotaCredito ? -1 : 1;
-        return sum + (item.montoNetoActivoFijo * factor);
-    }, 0);
+    // 4. Métricas de documentos
+    const maxFolio = filteredData.length > 0 ? 
+        Math.max(...filteredData.map(item => parseInt(item.folio) || 0)) : 0;
     
-    const totalIVAActivoFijo = filteredData.reduce((sum, item) => {
-        const factor = item.esNotaCredito ? -1 : 1;
-        return sum + (item.ivaActivoFijo * factor);
-    }, 0);
+    const minFolio = filteredData.length > 0 ? 
+        Math.min(...filteredData.filter(item => parseInt(item.folio) > 0).map(item => parseInt(item.folio) || 0)) : 0;
     
-    const pctActivoFijo = totalMontoNeto > 0 ? (totalActivoFijo / totalMontoNeto) * 100 : 0;
-    
-    const metricaActivoFijo = document.createElement('div');
-    metricaActivoFijo.className = 'analysis-metric';
-    metricaActivoFijo.innerHTML = `
-        <div class="metric-title">Activo Fijo</div>
-        <div class="metric-value">${formatCurrency(totalActivoFijo)}</div>
+    const metricaDocumentos = document.createElement('div');
+    metricaDocumentos.className = 'analysis-metric';
+    metricaDocumentos.innerHTML = `
+        <div class="metric-title">Métricas de Documentos</div>
+        <div class="metric-value">${totalCount} documentos</div>
         <div class="metric-info">
-            Representa el ${formatPercent(pctActivoFijo)} del total neto<br>
-            IVA de Activo Fijo: ${formatCurrency(totalIVAActivoFijo)}
+            Folio mínimo: ${minFolio}<br>
+            Folio máximo: ${maxFolio}
         </div>
     `;
-    metricsContainer.appendChild(metricaActivoFijo);
+    metricsContainer.appendChild(metricaDocumentos);
 }
 
 // Inicializar encabezados de tabla ordenables
