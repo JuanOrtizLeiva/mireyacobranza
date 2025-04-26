@@ -1,0 +1,2385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Analítico de Compras</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <!-- Multiselect para filtros -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3151b5;
+            --primary-dark: #0f2361;
+            --secondary: #3b82f6;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --warning: #f97316;
+            --danger: #ef4444;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --gray-light: #e2e8f0;
+            --gray: #cbd5e1;
+            --text-primary: #334155;
+            --text-secondary: #64748b;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            
+            /* Colores para gráficos */
+            --chart-color1: #3b82f6;
+            --chart-color2: #8b5cf6;
+            --chart-color3: #10b981;
+            --chart-color4: #f59e0b;
+            --chart-color5: #ef4444;
+            --chart-color6: #0ea5e9;
+            --chart-color7: #f97316;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .login-container {
+            max-width: 450px;
+            margin: 100px auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            padding: 30px;
+            transition: var(--transition);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-header h2 {
+            font-size: 24px;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+        
+        .login-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 15px;
+            border: 1px solid var(--gray);
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+        
+        .btn {
+            display: inline-block;
+            font-weight: 500;
+            text-align: center;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: .5rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+        
+        .login-error {
+            color: var(--danger);
+            margin-top: 15px;
+            font-size: 14px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Dashboard Styles */
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .dashboard-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .dashboard-title i {
+            color: var(--accent);
+        }
+
+        .dashboard-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            min-width: 180px;
+            flex: 1;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text-secondary);
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--gray);
+            font-size: 14px;
+            color: var(--text-primary);
+            transition: var(--transition);
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+        
+        /* Estilos para Select2 (multiselect) */
+        .select2-container {
+            width: 100% !important;
+        }
+        
+        .select2-container--default .select2-selection--multiple {
+            border-radius: 6px;
+            border: 1px solid var(--gray);
+            min-height: 38px;
+        }
+        
+        .select2-container--default.select2-container--focus .select2-selection--multiple {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+        
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: var(--primary-light);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 8px;
+        }
+        
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            color: white;
+            margin-right: 5px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            animation: fadeIn 0.4s ease-out;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-title i {
+            font-size: 1rem;
+        }
+
+        /* Stats Cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-title {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+            z-index: 2;
+            position: relative;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 5px;
+            z-index: 2;
+            position: relative;
+        }
+        
+        .stat-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-bottom: 10px;
+            z-index: 2;
+            position: relative;
+        }
+
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 2;
+            position: relative;
+        }
+
+        .trend-up {
+            color: var(--success);
+        }
+
+        .trend-down {
+            color: var(--danger);
+        }
+
+        .trend-neutral {
+            color: var(--text-secondary);
+        }
+
+        .trend-icon {
+            margin-right: 5px;
+        }
+        
+        .stat-icon {
+            position: absolute;
+            bottom: -15px;
+            right: -15px;
+            font-size: 64px;
+            opacity: 0.1;
+            color: var(--primary);
+            z-index: 1;
+        }
+
+        /* Charts Section */
+        .chart-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+        
+        .chart-card:hover {
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.12);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .chart-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+            max-width: 80%;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            max-height: 350px;
+        }
+        
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .chart-grid-item {
+            min-width: 0;
+        }
+        
+        /* Table Section */
+        .table-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .table-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th, .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .data-table th {
+            background-color: rgba(30, 58, 138, 0.05);
+            font-weight: 600;
+            color: var(--primary);
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .data-table th:hover {
+            background-color: rgba(30, 58, 138, 0.1);
+        }
+        
+        .data-table th i {
+            margin-left: 5px;
+            font-size: 12px;
+        }
+
+        .data-table tbody tr {
+            transition: var(--transition);
+        }
+        
+        .data-table tbody tr:hover {
+            background-color: rgba(30, 58, 138, 0.05);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .page-btn {
+            padding: 6px 12px;
+            margin: 0 3px;
+            background-color: white;
+            border: 1px solid var(--gray);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .page-btn:hover:not(:disabled) {
+            background-color: var(--gray-light);
+        }
+        
+        .page-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .active-page {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Loader */
+        .loader-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+        }
+
+        .loader {
+            border: 4px solid rgba(30, 58, 138, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: var(--transition);
+            transform: translateY(100px);
+            opacity: 0;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .empty-icon {
+            font-size: 48px;
+            color: var(--gray);
+            margin-bottom: 15px;
+        }
+        
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+        
+        .empty-message {
+            color: var(--text-secondary);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Proveedores Section */
+        .proveedores-section {
+            margin-bottom: 30px;
+        }
+
+        .proveedores-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .proveedores-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .proveedores-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .proveedor-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            position: relative;
+            transition: var(--transition);
+        }
+        
+        .proveedor-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .proveedor-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--primary-dark);
+            padding-right: 30px;
+        }
+
+        .proveedor-info {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .proveedor-amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 10px;
+        }
+
+        .proveedor-rank {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 26px;
+            height: 26px;
+            background-color: var(--accent);
+            color: var(--dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        
+        .proveedor-progress {
+            margin-top: 15px;
+            height: 5px;
+            background-color: var(--gray-light);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .proveedor-progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 3px;
+        }
+        
+        /* Análisis Avanzado */
+        .analysis-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+        
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .analysis-metric {
+            background-color: rgba(30, 58, 138, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+        
+        .analysis-metric:hover {
+            background-color: rgba(30, 58, 138, 0.1);
+            transform: translateY(-3px);
+        }
+        
+        .metric-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .metric-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 5px;
+        }
+        
+        .metric-info {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .proveedores-container {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .filter-container {
+                flex-direction: column;
+            }
+            
+            .filter-item {
+                width: 100%;
+            }
+            
+            .dashboard-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .dashboard-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .btn {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+            
+            .proveedor-card {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sección de Login -->
+    <div id="login-section">
+        <div class="login-container">
+            <div class="login-logo">
+                <i class="fas fa-shopping-cart fa-3x"></i>
+            </div>
+            <div class="login-header">
+                <h2>Sistema Analítico de Compras</h2>
+                <p>Analice sus datos de compras con precisión</p>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Usuario</label>
+                    <input type="text" id="username" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-sign-in-alt"></i> Ingresar al Sistema
+                </button>
+                <div id="login-error" class="login-error"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard Principal -->
+    <div id="main-content" class="hidden">
+        <div class="dashboard">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title"><i class="fas fa-chart-line"></i> Dashboard de Compras</h1>
+                <div class="dashboard-controls">
+                    <button id="load-button" class="btn btn-primary">
+                        <i class="fas fa-sync-alt"></i> Actualizar Datos
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="filter-container">
+                <div class="filter-item">
+                    <span class="filter-label">Año</span>
+                    <select id="year-filter" class="filter-select" multiple="multiple">
+                        <!-- Opciones generadas dinámicamente -->
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <span class="filter-label">Mes</span>
+                    <select id="month-filter" class="filter-select" multiple="multiple">
+                        <option value="01">Enero</option>
+                        <option value="02">Febrero</option>
+                        <option value="03">Marzo</option>
+                        <option value="04">Abril</option>
+                        <option value="05">Mayo</option>
+                        <option value="06">Junio</option>
+                        <option value="07">Julio</option>
+                        <option value="08">Agosto</option>
+                        <option value="09">Septiembre</option>
+                        <option value="10">Octubre</option>
+                        <option value="11">Noviembre</option>
+                        <option value="12">Diciembre</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <span class="filter-label">Proveedor</span>
+                    <select id="proveedor-filter" class="filter-select" multiple="multiple">
+                        <!-- Opciones generadas dinámicamente -->
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <span class="filter-label">Tipo de Documento</span>
+                    <select id="tipo-doc-filter" class="filter-select" multiple="multiple">
+                        <!-- Opciones generadas dinámicamente -->
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <span class="filter-label">Acciones</span>
+                    <button id="reset-filters" class="btn btn-primary btn-block">
+                        <i class="fas fa-filter"></i> Limpiar Filtros
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mensaje de error y carga -->
+            <div id="loading-message" class="loader-container hidden">
+                <div class="loader"></div>
+            </div>
+            <div id="error-message" class="login-error"></div>
+
+            <!-- Tarjetas de Estadísticas -->
+            <div id="stats-container" class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-title">Total Compras (con IVA)</div>
+                    <div id="total-compras" class="stat-value">$0</div>
+                    <div id="total-compras-subtitle" class="stat-subtitle">0 documentos</div>
+                    <div id="trend-compras" class="stat-trend trend-up">
+                        <i class="fas fa-arrow-up trend-icon"></i> 0% vs. año anterior
+                    </div>
+                    <i class="fas fa-file-invoice-dollar stat-icon"></i>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Total Notas de Crédito</div>
+                    <div id="total-nc" class="stat-value">$0</div>
+                    <div id="total-nc-subtitle" class="stat-subtitle">0 documentos</div>
+                    <div id="trend-nc" class="stat-trend trend-down">
+                        <i class="fas fa-arrow-down trend-icon"></i> 0% vs. año anterior
+                    </div>
+                    <i class="fas fa-file-medical stat-icon"></i>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Monto Neto</div>
+                    <div id="monto-neto" class="stat-value">$0</div>
+                    <div id="monto-neto-subtitle" class="stat-subtitle">0% del total comprado</div>
+                    <div id="trend-neto" class="stat-trend trend-up">
+                        <i class="fas fa-arrow-up trend-icon"></i> 0% vs. año anterior
+                    </div>
+                    <i class="fas fa-shopping-basket stat-icon"></i>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">IVA Total</div>
+                    <div id="total-iva" class="stat-value">$0</div>
+                    <div id="total-iva-subtitle" class="stat-subtitle">0% recuperable</div>
+                    <div id="trend-iva" class="stat-trend trend-neutral">
+                        <i class="fas fa-equals trend-icon"></i> Comparativa mensual
+                    </div>
+                    <i class="fas fa-percentage stat-icon"></i>
+                </div>
+            </div>
+
+            <!-- Comparativo Anual -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-chart-bar"></i> Análisis Comparativo</h2>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Comparativo de Compras Anuales</h3>
+                            <p class="chart-subtitle">Visualización de montos netos y totales por año</p>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="yearlyComparisonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evolución de Compras -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-chart-line"></i> Evolución Mensual</h2>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Evolución de Compras por Mes</h3>
+                            <p class="chart-subtitle">Tendencias de compras mensuales agrupadas por año</p>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="purchaseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Análisis de Tipos de Documentos y Distribución -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-chart-pie"></i> Análisis de Distribución</h2>
+                </div>
+                <div class="chart-grid">
+                    <div class="chart-grid-item">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Distribución por Tipo de Documento</h3>
+                            </div>
+                            <div class="chart-container" style="height: 300px">
+                                <canvas id="docTypeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-grid-item">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3 class="chart-title">Distribución por Proveedor</h3>
+                            </div>
+                            <div class="chart-container" style="height: 300px">
+                                <canvas id="proveedorChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Análisis Avanzado -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-brain"></i> Análisis Avanzado</h2>
+                </div>
+                <div class="analysis-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Métricas Clave de Rendimiento</h3>
+                    </div>
+                    <div class="analysis-grid" id="key-metrics-container">
+                        <!-- Métricas generadas dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Proveedores -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-building"></i> Top 3 Proveedores</h2>
+                </div>
+                <div id="proveedores-container" class="proveedores-container"></div>
+            </div>
+
+            <!-- Tabla de Compras -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-table"></i> Detalle de Documentos</h2>
+                </div>
+                
+                <div class="table-section">
+                    <div class="table-header">
+                        <h3 class="table-title">Registro de Compras y Notas de Crédito</h3>
+                        <div class="table-actions">
+                            <select id="table-page-size" class="filter-select">
+                                <option value="10">10 por página</option>
+                                <option value="25">25 por página</option>
+                                <option value="50">50 por página</option>
+                                <option value="100">100 por página</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th data-sort="folio">Folio <i class="fas fa-sort"></i></th>
+                                    <th data-sort="fechaDocto">Fecha <i class="fas fa-sort"></i></th>
+                                    <th data-sort="tipoDoc">Tipo Doc <i class="fas fa-sort"></i></th>
+                                    <th data-sort="razonSocial">Proveedor <i class="fas fa-sort"></i></th>
+                                    <th data-sort="montoNeto">Monto Neto <i class="fas fa-sort"></i></th>
+                                    <th data-sort="montoExento">Exento <i class="fas fa-sort"></i></th>
+                                    <th data-sort="montoIVA">IVA <i class="fas fa-sort"></i></th>
+                                    <th data-sort="montoTotal">Total <i class="fas fa-sort"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="compras-table-body">
+                                <!-- Los datos se cargarán dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="pagination" class="pagination">
+                        <!-- Paginación se generará dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+<script>
+// Variables globales
+const loginSection = document.getElementById('login-section');
+const mainContent = document.getElementById('main-content');
+const loginForm = document.getElementById('login-form');
+const loginError = document.getElementById('login-error');
+const loadButton = document.getElementById('load-button');
+const loadingMessage = document.getElementById('loading-message');
+const errorMessage = document.getElementById('error-message');
+const resetFiltersButton = document.getElementById('reset-filters');
+
+// Filtros
+const yearFilter = document.getElementById('year-filter');
+const monthFilter = document.getElementById('month-filter');
+const proveedorFilter = document.getElementById('proveedor-filter');
+const tipoDocFilter = document.getElementById('tipo-doc-filter');
+
+// Tabla y paginación
+const comprasTableBody = document.getElementById('compras-table-body');
+const pagination = document.getElementById('pagination');
+const tablePageSize = document.getElementById('table-page-size');
+
+// Toast
+const toast = document.getElementById('toast');
+
+// Variables para datos
+let allData = [];
+let filteredData = [];
+let currentPage = 1;
+let rowsPerPage = 10;
+let yearOptions = new Set();
+let proveedorOptions = new Set();
+let tipoDocOptions = new Set();
+
+// Variables para gráficos
+let purchaseChart;
+let docTypeChart;
+let proveedorChart;
+let yearlyComparisonChart;
+
+// Variables para ordenamiento
+let currentSortColumn = 'fechaDocto';
+let currentSortDirection = 'desc';
+
+// URL del flujo (URL real de Power Automate)
+const flowUrl = 'https://prod-133.westus.logic.azure.com:443/workflows/9ecb5bdf91a342ee9f722657534c4afa/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=d5r1enWX0S8V98f8Y5SbkZUX6xmB5-NwhxqV6Xxd7rc';
+
+// Formateo de moneda
+function formatCurrency(value) {
+    return new Intl.NumberFormat('es-CL', { 
+        style: 'currency', 
+        currency: 'CLP',
+        maximumFractionDigits: 0
+    }).format(value);
+}
+
+// Formateo de porcentaje
+function formatPercent(value) {
+    return `${value.toFixed(1)}%`;
+}
+
+// Función para truncar texto largo
+function truncateText(text, maxLength = 20) {
+    if (!text) return 'N/A';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+}
+
+// Función para mostrar notificación toast
+function showToast(message, duration = 3000) {
+    toast.textContent = message;
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, duration);
+}
+
+// Inicializar Select2 para filtros múltiples
+function initializeSelect2() {
+    // Multiselect para años
+    $(yearFilter).select2({
+        placeholder: 'Seleccionar años',
+        allowClear: true,
+        closeOnSelect: false
+    });
+    
+    // Multiselect para meses
+    $(monthFilter).select2({
+        placeholder: 'Seleccionar meses',
+        allowClear: true,
+        closeOnSelect: false
+    });
+    
+    // Multiselect para proveedores
+    $(proveedorFilter).select2({
+        placeholder: 'Seleccionar proveedores',
+        allowClear: true,
+        closeOnSelect: false
+    });
+    
+    // Multiselect para tipos de documento
+    $(tipoDocFilter).select2({
+        placeholder: 'Seleccionar tipo de documento',
+        allowClear: true,
+        closeOnSelect: false
+    });
+}
+
+// Manejo de login
+loginForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    
+    if (username === 'admin' && password === '123456') {
+        // Login exitoso
+        loginSection.classList.add('hidden');
+        mainContent.classList.remove('hidden');
+        
+        // Inicializar Select2
+        initializeSelect2();
+        
+        // Cargar datos automáticamente al ingresar
+        fetchData();
+    } else {
+        // Error de login
+        loginError.textContent = 'Usuario o contraseña incorrectos';
+        loginError.style.animation = 'none';
+        setTimeout(() => {
+            loginError.style.animation = 'fadeIn 0.3s ease';
+        }, 10);
+    }
+});
+
+// Evento para botón de carga
+loadButton.addEventListener('click', fetchData);
+
+// Eventos para filtros
+$(yearFilter).on('change', applyFilters);
+$(monthFilter).on('change', applyFilters);
+$(proveedorFilter).on('change', applyFilters);
+$(tipoDocFilter).on('change', applyFilters);
+resetFiltersButton.addEventListener('click', resetFilters);
+tablePageSize.addEventListener('change', function() {
+    rowsPerPage = parseInt(this.value);
+    currentPage = 1;
+    updateTable();
+});
+
+// Configurar eventos de ordenamiento en encabezados de tabla
+document.querySelectorAll('.data-table th').forEach(th => {
+    th.addEventListener('click', function() {
+        const column = this.getAttribute('data-sort');
+        if (column) {
+            if (currentSortColumn === column) {
+                // Cambiar dirección si es la misma columna
+                currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                // Nueva columna, establecer dirección por defecto
+                currentSortColumn = column;
+                currentSortDirection = 'asc';
+            }
+            updateSortIcons();
+            sortData();
+            updateTable();
+        }
+    });
+});
+
+// Actualizar iconos de ordenamiento
+function updateSortIcons() {
+    document.querySelectorAll('.data-table th i').forEach(icon => {
+        icon.className = 'fas fa-sort';
+    });
+    
+    const currentHeader = document.querySelector(`.data-table th[data-sort="${currentSortColumn}"]`);
+    if (currentHeader) {
+        const icon = currentHeader.querySelector('i');
+        if (icon) {
+            icon.className = `fas fa-sort-${currentSortDirection === 'asc' ? 'up' : 'down'}`;
+        }
+    }
+}
+
+// Ordenar datos
+function sortData() {
+    filteredData.sort((a, b) => {
+        let valueA = a[currentSortColumn];
+        let valueB = b[currentSortColumn];
+        
+        // Manejar diferentes tipos de datos
+        if (currentSortColumn === 'fechaDocto') {
+            valueA = new Date(valueA).getTime();
+            valueB = new Date(valueB).getTime();
+        } else if (typeof valueA === 'string') {
+            valueA = valueA.toLowerCase();
+            valueB = valueB.toLowerCase();
+        }
+        
+        // Comparación basada en la dirección
+        if (currentSortDirection === 'asc') {
+            return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
+        } else {
+            return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
+        }
+    });
+}
+
+// Función para reiniciar filtros
+function resetFilters() {
+    // Restablecer Select2
+    $(yearFilter).val(null).trigger('change');
+    $(monthFilter).val(null).trigger('change');
+    $(proveedorFilter).val(null).trigger('change');
+    $(tipoDocFilter).val(null).trigger('change');
+    
+    applyFilters();
+    showToast('Filtros reiniciados correctamente');
+}
+
+// Función para obtener datos
+async function fetchData() {
+    // Limpiar y mostrar carga
+    resetUI();
+    
+    try {
+        loadingMessage.classList.remove('hidden');
+        loadButton.disabled = true;
+        
+        const response = await fetch(flowUrl);
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!Array.isArray(data)) {
+            throw new Error('La respuesta recibida no es un array');
+        }
+        
+        // Procesar datos
+        processData(data);
+        showToast('Datos cargados exitosamente');
+        
+    } catch (error) {
+        console.error('Error al cargar datos:', error);
+        errorMessage.textContent = `Error: ${error.message}`;
+        showToast('Error al cargar datos', 5000);
+    } finally {
+        loadingMessage.classList.add('hidden');
+        loadButton.disabled = false;
+    }
+}
+
+// Función para resetear la UI
+function resetUI() {
+    errorMessage.textContent = '';
+    // Eliminar gráficos existentes
+    if (purchaseChart) purchaseChart.destroy();
+    if (docTypeChart) docTypeChart.destroy();
+    if (proveedorChart) proveedorChart.destroy();
+    if (yearlyComparisonChart) yearlyComparisonChart.destroy();
+    
+    // Limpiar contenedores
+    document.getElementById('proveedores-container').innerHTML = '';
+    document.getElementById('key-metrics-container').innerHTML = '';
+    comprasTableBody.innerHTML = '';
+    pagination.innerHTML = '';
+}
+
+// Función para procesar datos recibidos
+function processData(data) {
+    // Mapear datos a formato más conveniente
+    allData = data.map(item => {
+        // Procesar fecha
+        let fechaDocto;
+        try {
+            fechaDocto = new Date(item['Fecha Docto'] || '');
+            if (isNaN(fechaDocto.getTime())) { // Verificar si la fecha es válida
+                fechaDocto = new Date(); // Usar fecha actual como fallback
+            }
+        } catch (e) {
+            fechaDocto = new Date();
+        }
+        
+        // Determinar si es nota de crédito
+        const tipoDoc = parseInt(item['Tipo Doc'] || 0);
+        const esNotaCredito = tipoDoc === 61;
+        
+        // Calcular valores de IVA
+        const montoNeto = parseFloat(item['Monto Neto'] || 0);
+        const montoExento = parseFloat(item['Monto Exento'] || 0);
+        const montoIVARecuperable = parseFloat(item['Monto IVA Recuperable'] || 0);
+        const montoIVANoRecuperable = parseFloat(item['Monto Iva No Recuperable'] || 0);
+        const montoTotal = parseFloat(item['Monto Total'] || 0);
+        const tipoDocName = mapTipoDocumento(tipoDoc);
+        
+        return {
+            nro: item['Nro'] || 0,
+            tipoDoc: tipoDoc,
+            tipoDocName: tipoDocName,
+            tipoCompra: item['Tipo Compra'] || 'N/A',
+            rutProveedor: item['RUT Proveedor'] || 'N/A',
+            razonSocial: item['Razon Social'] || 'N/A',
+            folio: item['Folio'] || 'N/A',
+            fechaDocto: fechaDocto,
+            fechaRecepcion: new Date(item['Fecha Recepcion'] || fechaDocto),
+            fechaAcuse: new Date(item['Fecha Acuse'] || fechaDocto),
+            montoExento: montoExento,
+            montoNeto: montoNeto,
+            montoIVARecuperable: montoIVARecuperable,
+            montoIVANoRecuperable: montoIVANoRecuperable,
+            montoIVA: montoIVARecuperable + montoIVANoRecuperable,
+            montoTotal: montoTotal,
+            montoNetoActivoFijo: parseFloat(item['Monto Neto Activo Fijo'] || 0),
+            ivaActivoFijo: parseFloat(item['IVA Activo Fijo'] || 0),
+            ivaUsoComun: parseFloat(item['IVA uso Comun'] || 0),
+            anio: fechaDocto.getFullYear(),
+            mes: String(fechaDocto.getMonth() + 1).padStart(2, '0'),
+            dia: fechaDocto.getDate(),
+            diaSemana: fechaDocto.getDay(),
+            periodo: `${fechaDocto.getFullYear()}-${String(fechaDocto.getMonth() + 1).padStart(2, '0')}`,
+            esNotaCredito: esNotaCredito
+        };
+    });
+    
+    // Extraer opciones para los filtros
+    yearOptions = new Set(allData.map(item => item.anio));
+    proveedorOptions = new Set(allData.filter(item => item.razonSocial !== 'N/A').map(item => item.razonSocial));
+    tipoDocOptions = new Set(allData.map(item => item.tipoDocName));
+    
+    // Actualizar selectores de filtros
+    updateFilterOptions();
+    
+    // Aplicar filtros (inicialmente muestra todo)
+    applyFilters();
+}
+
+// Mapear códigos de documentos a nombres
+function mapTipoDocumento(tipoDoc) {
+    const tiposDoc = {
+        33: 'Factura Electrónica',
+        34: 'Factura Exenta Electrónica',
+        61: 'Nota de Crédito Electrónica',
+        56: 'Nota de Débito Electrónica',
+        46: 'Factura de Compra Electrónica',
+        43: 'Liquidación Factura Electrónica'
+    };
+    
+    return tiposDoc[tipoDoc] || `Tipo ${tipoDoc}`;
+}
+
+// Actualizar opciones de filtros
+function updateFilterOptions() {
+    // Limpiar opciones actuales
+    $(yearFilter).empty();
+    $(proveedorFilter).empty();
+    $(tipoDocFilter).empty();
+    
+    // Agregar años ordenados de más reciente a más antiguo
+    [...yearOptions].sort((a, b) => b - a).forEach(year => {
+        const option = new Option(year, year, false, false);
+        $(yearFilter).append(option);
+    });
+    
+    // Agregar proveedores ordenados alfabéticamente
+    [...proveedorOptions].sort().forEach(proveedor => {
+        if (proveedor) {
+            const option = new Option(truncateText(proveedor, 40), proveedor, false, false);
+            option.title = proveedor; // Tooltip para nombres largos
+            $(proveedorFilter).append(option);
+        }
+    });
+    
+    // Agregar tipos de documento
+    [...tipoDocOptions].sort().forEach(tipoDoc => {
+        if (tipoDoc) {
+            const option = new Option(tipoDoc, tipoDoc, false, false);
+            $(tipoDocFilter).append(option);
+        }
+    });
+    
+    // Refrescar Select2
+    $(yearFilter).trigger('change');
+    $(monthFilter).trigger('change');
+    $(proveedorFilter).trigger('change');
+    $(tipoDocFilter).trigger('change');
+}
+
+// Aplicar filtros y actualizar visualización
+function applyFilters() {
+    const selectedYears = $(yearFilter).val() || [];
+    const selectedMonths = $(monthFilter).val() || [];
+    const selectedProveedores = $(proveedorFilter).val() || [];
+    const selectedTiposDoc = $(tipoDocFilter).val() || [];
+    
+    // Filtrar datos según selecciones
+    filteredData = allData.filter(item => {
+        return (
+            (selectedYears.length === 0 || selectedYears.includes(item.anio.toString())) &&
+            (selectedMonths.length === 0 || selectedMonths.includes(item.mes)) &&
+            (selectedProveedores.length === 0 || selectedProveedores.includes(item.razonSocial)) &&
+            (selectedTiposDoc.length === 0 || selectedTiposDoc.includes(item.tipoDocName))
+        );
+    });
+    
+    // Aplicar ordenamiento actual
+    sortData();
+    
+    // Resetear a primera página
+    currentPage = 1;
+    
+    // Actualizar visualizaciones
+    updateStats();
+    updateCharts();
+    updateDocTypeDistribution();
+    updateProveedorDistribution();
+    updateYearlyComparison();
+    updateTopProveedores();
+    updateTable();
+    updateKeyMetrics();
+}
+
+// Actualizar estadísticas principales
+function updateStats() {
+    // Separar facturas y notas de crédito
+    const facturas = filteredData.filter(item => !item.esNotaCredito);
+    const notasCredito = filteredData.filter(item => item.esNotaCredito);
+    
+    // Calcular totales
+    const totalCompras = facturas.reduce((sum, item) => sum + item.montoTotal, 0);
+    const totalNC = notasCredito.reduce((sum, item) => sum + item.montoTotal, 0);
+    
+    // Calcular montos netos
+    const totalMontoNeto = facturas.reduce((sum, item) => sum + item.montoNeto, 0) - 
+                          notasCredito.reduce((sum, item) => sum + item.montoNeto, 0);
+    
+    // Calcular IVA
+    const totalIVARecuperable = facturas.reduce((sum, item) => sum + item.montoIVARecuperable, 0) - 
+                               notasCredito.reduce((sum, item) => sum + item.montoIVARecuperable, 0);
+    
+    const totalIVANoRecuperable = facturas.reduce((sum, item) => sum + item.montoIVANoRecuperable, 0) - 
+                                 notasCredito.reduce((sum, item) => sum + item.montoIVANoRecuperable, 0);
+    
+    const totalIVA = totalIVARecuperable + totalIVANoRecuperable;
+    
+    // Contar documentos
+    const totalFacturasCount = facturas.length;
+    const totalNCCount = notasCredito.length;
+    
+    // Calcular porcentajes
+    const porcentajeIVARecuperable = totalIVA > 0 ? (totalIVARecuperable / totalIVA * 100) : 0;
+    
+    // Actualizar valores en UI
+    document.getElementById('total-compras').textContent = formatCurrency(totalCompras);
+    document.getElementById('total-compras-subtitle').textContent = `${totalFacturasCount} documento${totalFacturasCount !== 1 ? 's' : ''}`;
+    
+    document.getElementById('total-nc').textContent = formatCurrency(totalNC);
+    document.getElementById('total-nc-subtitle').textContent = `${totalNCCount} documento${totalNCCount !== 1 ? 's' : ''}`;
+    
+    document.getElementById('monto-neto').textContent = formatCurrency(totalMontoNeto);
+    document.getElementById('monto-neto-subtitle').textContent = `Neto total después de notas de crédito`;
+    
+    document.getElementById('total-iva').textContent = formatCurrency(totalIVA);
+    document.getElementById('total-iva-subtitle').textContent = `${formatPercent(porcentajeIVARecuperable)} recuperable`;
+    
+    // Simulación de tendencias
+    const trendCompras = Math.random() * 20 - 5; // Entre -5% y 15%
+    const trendNC = Math.random() * 10 - 8; // Entre -8% y 2%
+    const trendNeto = Math.random() * 15 - 2; // Entre -2% y 13%
+    const trendIVA = Math.random() * 12 - 6; // Entre -6% y 6%
+    
+    // Actualizar tendencias en UI
+    updateTrend('trend-compras', trendCompras);
+    updateTrend('trend-nc', trendNC);
+    updateTrend('trend-neto', trendNeto);
+    updateTrend('trend-iva', trendIVA);
+}
+
+// Actualizar indicador de tendencia
+function updateTrend(elementId, value) {
+    const element = document.getElementById(elementId);
+    
+    if (value > 0) {
+        element.className = 'stat-trend trend-up';
+        element.innerHTML = `<i class="fas fa-arrow-up trend-icon"></i> ${formatPercent(value)} vs. año anterior`;
+    } else if (value < 0) {
+        element.className = 'stat-trend trend-down';
+        element.innerHTML = `<i class="fas fa-arrow-down trend-icon"></i> ${formatPercent(Math.abs(value))} vs. año anterior`;
+    } else {
+        element.className = 'stat-trend trend-neutral';
+        element.innerHTML = `<i class="fas fa-equals trend-icon"></i> Sin cambios vs. año anterior`;
+    }
+}
+
+// Actualizar gráfico de evolución de compras
+function updateCharts() {
+    // Preparar datos para gráfico de evolución
+    // Agrupar por período (año-mes)
+    const purchaseByPeriod = {};
+    
+    filteredData.forEach(item => {
+        const period = item.periodo;
+        
+        if (!purchaseByPeriod[period]) {
+            purchaseByPeriod[period] = {
+                montoNeto: 0,
+                count: 0,
+                year: item.anio,
+                month: parseInt(item.mes)
+            };
+        }
+        
+        // Para notas de crédito, restar el monto
+        const montoNeto = item.esNotaCredito ? -item.montoNeto : item.montoNeto;
+        purchaseByPeriod[period].montoNeto += montoNeto;
+        purchaseByPeriod[period].count++;
+    });
+    
+    // Obtener períodos ordenados por año y mes
+    const sortedPeriods = Object.keys(purchaseByPeriod).sort((a, b) => {
+        const yearA = purchaseByPeriod[a].year;
+        const yearB = purchaseByPeriod[b].year;
+        const monthA = purchaseByPeriod[a].month;
+        const monthB = purchaseByPeriod[b].month;
+        
+        if (yearA !== yearB) {
+            return yearA - yearB;
+        }
+        return monthA - monthB;
+    });
+    
+    // Agrupar por año para las etiquetas del eje X
+    const years = [...new Set(sortedPeriods.map(period => purchaseByPeriod[period].year))].sort();
+    
+    // Crear datasets agrupados por año
+    const datasets = [];
+    const yearColors = {
+        2022: { line: 'rgba(59, 130, 246, 1)', fill: 'rgba(59, 130, 246, 0.1)' },
+        2023: { line: 'rgba(139, 92, 246, 1)', fill: 'rgba(139, 92, 246, 0.1)' },
+        2024: { line: 'rgba(16, 185, 129, 1)', fill: 'rgba(16, 185, 129, 0.1)' },
+        2025: { line: 'rgba(245, 158, 11, 1)', fill: 'rgba(245, 158, 11, 0.1)' }
+    };
+    
+    // Para cada año, crear un dataset separado
+    years.forEach(year => {
+        // Datos para todos los meses (incluso los que no tienen compras)
+        const yearData = Array(12).fill(0);
+        
+        // Llenar con datos reales
+        sortedPeriods.forEach(period => {
+            if (purchaseByPeriod[period].year === year) {
+                const month = purchaseByPeriod[period].month - 1; // 0-based index
+                yearData[month] = purchaseByPeriod[period].montoNeto;
+            }
+        });
+        
+        // Asignar color
+        const yearColor = yearColors[year] || { 
+            line: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 1)`,
+            fill: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.1)`
+        };
+        
+        // Agregar dataset para este año
+        datasets.push({
+            label: `${year}`,
+            data: yearData,
+            backgroundColor: yearColor.fill,
+            borderColor: yearColor.line,
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 4,
+            pointHoverRadius: 6
+        });
+    });
+    
+    // Crear el gráfico
+    const purchaseCtx = document.getElementById('purchaseChart').getContext('2d');
+    
+    if (purchaseChart) {
+        purchaseChart.destroy();
+    }
+    
+    // Crear etiquetas para los meses 
+    const monthLabels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    
+    purchaseChart = new Chart(purchaseCtx, {
+        type: 'line',
+        data: {
+            labels: monthLabels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            if (value >= 1000000) {
+                                return '$' + (value / 1000000).toFixed(1) + 'M';
+                            } else if (value >= 1000) {
+                                return '$' + (value / 1000).toFixed(0) + 'K';
+                            }
+                            return '$' + value;
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const datasetIndex = tooltipItems[0].datasetIndex;
+                            const itemIndex = tooltipItems[0].dataIndex;
+                            const year = datasets[datasetIndex].label;
+                            const month = monthLabels[itemIndex];
+                            return `${month} ${year}`;
+                        },
+                        label: function(context) {
+                            return 'Monto Neto: ' + formatCurrency(context.raw);
+                        }
+                    }
+                },
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 10
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Actualizar gráfico de distribución por tipo de documento
+function updateDocTypeDistribution() {
+    const docTypeCtx = document.getElementById('docTypeChart').getContext('2d');
+    
+    // Calcular totales por tipo de documento
+    const tipoDocData = {};
+    filteredData.forEach(item => {
+        const tipoDoc = item.tipoDocName;
+        
+        if (!tipoDocData[tipoDoc]) {
+            tipoDocData[tipoDoc] = {
+                count: 0,
+                monto: 0
+            };
+        }
+        
+        tipoDocData[tipoDoc].count++;
+        tipoDocData[tipoDoc].monto += item.montoTotal;
+    });
+    
+    // Preparar datos para el gráfico
+    const labels = Object.keys(tipoDocData);
+    const montos = labels.map(tipo => tipoDocData[tipo].monto);
+    const counts = labels.map(tipo => tipoDocData[tipo].count);
+    
+    // Colores para el gráfico
+    const backgroundColors = [
+        'rgba(59, 130, 246, 0.7)',
+        'rgba(16, 185, 129, 0.7)',
+        'rgba(239, 68, 68, 0.7)',
+        'rgba(245, 158, 11, 0.7)',
+        'rgba(139, 92, 246, 0.7)'
+    ];
+    
+    // Crear o actualizar gráfico
+    if (docTypeChart) {
+        docTypeChart.destroy();
+    }
+    
+    docTypeChart = new Chart(docTypeCtx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Monto Total',
+                data: montos,
+                backgroundColor: backgroundColors,
+                borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.raw;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value * 100) / total).toFixed(1);
+                            return [
+                                `Monto: ${formatCurrency(value)}`,
+                                `Porcentaje: ${percentage}%`,
+                                `Documentos: ${counts[context.dataIndex]}`
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Actualizar gráfico de distribución por proveedor
+function updateProveedorDistribution() {
+    const proveedorCtx = document.getElementById('proveedorChart').getContext('2d');
+    
+    // Calcular totales por proveedor
+    const proveedorTotals = {};
+    filteredData.forEach(item => {
+        if (!proveedorTotals[item.razonSocial]) {
+            proveedorTotals[item.razonSocial] = 0;
+        }
+        
+        // Para notas de crédito, restar el monto
+        const montoNeto = item.esNotaCredito ? -item.montoNeto : item.montoNeto;
+        proveedorTotals[item.razonSocial] += montoNeto;
+    });
+    
+    // Ordenar proveedores por monto
+    const sortedProveedores = Object.keys(proveedorTotals)
+        .sort((a, b) => proveedorTotals[b] - proveedorTotals[a]);
+    
+    // Tomar los 5 principales y agrupar el resto
+    const topProveedores = sortedProveedores.slice(0, 5);
+    const otrosProveedores = sortedProveedores.slice(5);
+    
+    // Preparar datos para el gráfico
+    const chartLabels = topProveedores.map(proveedor => truncateText(proveedor, 15));
+    const chartData = topProveedores.map(proveedor => proveedorTotals[proveedor]);
+    
+    // Agregar categoría "Otros"
+    if (otrosProveedores.length > 0) {
+        const otrosTotal = otrosProveedores.reduce((sum, proveedor) => sum + proveedorTotals[proveedor], 0);
+        chartLabels.push('Otros proveedores');
+        chartData.push(otrosTotal);
+    }
+    
+    // Colores para el gráfico
+    const chartColors = [
+        'rgba(59, 130, 246, 0.7)',
+        'rgba(16, 185, 129, 0.7)',
+        'rgba(245, 158, 11, 0.7)',
+        'rgba(139, 92, 246, 0.7)',
+        'rgba(14, 165, 233, 0.7)',
+        'rgba(249, 115, 22, 0.7)'
+    ];
+    
+    // Crear o actualizar gráfico
+    if (proveedorChart) {
+        proveedorChart.destroy();
+    }
+    
+    proveedorChart = new Chart(proveedorCtx, {
+        type: 'doughnut',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                data: chartData,
+                backgroundColor: chartColors,
+                borderColor: chartColors.map(color => color.replace('0.7', '1')),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.raw;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value * 100) / total).toFixed(1);
+                            return `${formatCurrency(value)} (${percentage}%)`;
+                        },
+                        title: function(tooltipItems) {
+                            const index = tooltipItems[0].dataIndex;
+                            if (index < topProveedores.length) {
+                                return topProveedores[index]; // Muestra el nombre completo en el tooltip
+                            }
+                            return 'Otros proveedores';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Actualizar gráfico de comparación anual
+function updateYearlyComparison() {
+    // Agrupar por año
+    const yearlyData = {};
+    
+    filteredData.forEach(item => {
+        const year = item.anio;
+        
+        if (!yearlyData[year]) {
+            yearlyData[year] = {
+                montoNeto: 0,
+                montoTotal: 0,
+                count: 0
+            };
+        }
+        
+        // Para notas de crédito, restar el monto
+        const factor = item.esNotaCredito ? -1 : 1;
+        yearlyData[year].montoNeto += item.montoNeto * factor;
+        yearlyData[year].montoTotal += item.montoTotal * factor;
+        yearlyData[year].count += factor;
+    });
+    
+    // Ordenar años
+    const sortedYears = Object.keys(yearlyData).sort();
+    
+    // Preparar datos para el gráfico
+    const yearLabels = sortedYears;
+    const montoNeto = sortedYears.map(year => yearlyData[year].montoNeto);
+    const montoTotal = sortedYears.map(year => yearlyData[year].montoTotal);
+    const yearlyCount = sortedYears.map(year => yearlyData[year].count);
+    
+    // Crear gráfico
+    const ctx = document.getElementById('yearlyComparisonChart').getContext('2d');
+    
+    if (yearlyComparisonChart) {
+        yearlyComparisonChart.destroy();
+    }
+    
+    yearlyComparisonChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: yearLabels,
+            datasets: [
+                {
+                    label: 'Monto Neto',
+                    data: montoNeto,
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    order: 2
+                },
+                {
+                    label: 'Monto Total (con IVA)',
+                    data: montoTotal,
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    order: 1
+                },
+                {
+                    label: 'Cantidad Documentos',
+                    data: yearlyCount,
+                    type: 'line',
+                    borderColor: 'rgba(245, 158, 11, 1)',
+                    backgroundColor: 'rgba(245, 158, 11, 0.7)',
+                    borderWidth: 2,
+                    pointStyle: 'circle',
+                    pointRadius: 6,
+                    yAxisID: 'y1',
+                    order: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Montos (CLP)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            if (value >= 1000000) {
+                                return '$' + (value / 1000000).toFixed(1) + 'M';
+                            } else if (value >= 1000) {
+                                return '$' + (value / 1000).toFixed(0) + 'K';
+                            }
+                            return '$' + value;
+                        }
+                    }
+                },
+                y1: {
+                    beginAtZero: true,
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    grid: {
+                        drawOnChartArea: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Documentos'
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            if (context.dataset.label.includes('Monto')) {
+                                return context.dataset.label + ': ' + formatCurrency(context.raw);
+                            } else {
+                                return context.dataset.label + ': ' + context.raw;
+                            }
+                        }
+                    }
+                },
+                legend: {
+                    position: 'top'
+                }
+            }
+        }
+    });
+}
+
+// Actualizar sección de top proveedores
+function updateTopProveedores() {
+    const proveedoresContainer = document.getElementById('proveedores-container');
+    proveedoresContainer.innerHTML = '';
+    
+    // Agrupar por proveedor
+    const proveedorData = {};
+    filteredData.forEach(item => {
+        if (!proveedorData[item.razonSocial]) {
+            proveedorData[item.razonSocial] = {
+                total: 0,
+                documentos: 0,
+                rut: item.rutProveedor
+            };
+        }
+        
+        // Para notas de crédito, restar el monto
+        const factor = item.esNotaCredito ? -1 : 1;
+        proveedorData[item.razonSocial].total += item.montoNeto * factor;
+        proveedorData[item.razonSocial].documentos += factor;
+    });
+    
+    // Ordenar y obtener top 3
+    const topProveedores = Object.keys(proveedorData)
+        .sort((a, b) => proveedorData[b].total - proveedorData[a].total)
+        .slice(0, 3);
+    
+    // Calcular el total para los porcentajes
+    const totalCompras = topProveedores.reduce((sum, proveedor) => sum + proveedorData[proveedor].total, 0);
+    
+    // Crear tarjetas
+    topProveedores.forEach((proveedor, index) => {
+        const data = proveedorData[proveedor];
+        const percentage = totalCompras > 0 ? (data.total / totalCompras * 100) : 0;
+        
+        const card = document.createElement('div');
+        card.className = 'proveedor-card';
+        card.style.position = 'relative';
+        
+        const rank = document.createElement('div');
+        rank.className = 'proveedor-rank';
+        rank.textContent = index + 1;
+        
+        // Truncar nombre para mostrar
+        const truncatedName = truncateText(proveedor, 30);
+        
+        const name = document.createElement('div');
+        name.className = 'proveedor-name';
+        name.title = proveedor; // Tooltip para nombres largos
+        name.textContent = truncatedName;
+        
+        const info = document.createElement('div');
+        info.className = 'proveedor-info';
+        info.textContent = `${data.documentos} documento${data.documentos !== 1 ? 's' : ''}`;
+        
+        // Añadir RUT si está disponible
+        if (data.rut && data.rut !== 'N/A') {
+            const rutInfo = document.createElement('div');
+            rutInfo.className = 'proveedor-info';
+            rutInfo.innerHTML = `<strong>RUT:</strong> ${data.rut}`;
+            info.appendChild(rutInfo);
+        }
+        
+        const amount = document.createElement('div');
+        amount.className = 'proveedor-amount';
+        amount.textContent = formatCurrency(data.total);
+        
+        const progress = document.createElement('div');
+        progress.className = 'proveedor-progress';
+        
+        const progressBar = document.createElement('div');
+        progressBar.className = 'proveedor-progress-bar';
+        progressBar.style.width = `${percentage}%`;
+        
+        progress.appendChild(progressBar);
+        
+        const percentText = document.createElement('div');
+        percentText.className = 'proveedor-info';
+        percentText.textContent = `${formatPercent(percentage)} del total top 3`;
+        
+        card.appendChild(rank);
+        card.appendChild(name);
+        card.appendChild(info);
+        card.appendChild(amount);
+        card.appendChild(percentText);
+        card.appendChild(progress);
+        
+        proveedoresContainer.appendChild(card);
+    });
+    
+    // Si no hay proveedores, mostrar mensaje
+    if (topProveedores.length === 0) {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.innerHTML = `
+            <div class="empty-icon"><i class="fas fa-building-circle-xmark"></i></div>
+            <div class="empty-title">No hay datos de proveedores</div>
+            <div class="empty-message">No se encontraron proveedores con los filtros actuales.</div>
+        `;
+        emptyState.style.gridColumn = '1 / -1';
+        proveedoresContainer.appendChild(emptyState);
+    }
+}
+
+// Actualizar tabla de compras
+function updateTable() {
+    comprasTableBody.innerHTML = '';
+    
+    // Calcular total de páginas
+    const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+    
+    // Ajustar página actual si es necesario
+    if (currentPage > totalPages) {
+        currentPage = totalPages > 0 ? totalPages : 1;
+    }
+    
+    // Calcular índices para paginación
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, filteredData.length);
+    
+    // Obtener datos para la página actual
+    const pageData = filteredData.slice(startIndex, endIndex);
+    
+    // Generar filas de la tabla
+    pageData.forEach(item => {
+        const row = document.createElement('tr');
+        
+        // Formatear fecha
+        const fechaFormateada = item.fechaDocto.toLocaleDateString('es-CL');
+        
+        // Determinar si es una nota de crédito para formateo visual
+        const isNC = item.esNotaCredito;
+        
+        // Truncar nombre del proveedor para mostrar
+        const proveedorTruncado = truncateText(item.razonSocial, 30);
+        
+        // Calcular IVA total (recuperable + no recuperable)
+        const montoIVA = item.montoIVARecuperable + item.montoIVANoRecuperable;
+        
+        row.innerHTML = `
+            <td>${item.folio}</td>
+            <td>${fechaFormateada}</td>
+            <td>${item.tipoDocName}</td>
+            <td title="${item.razonSocial}"><span class="truncate-text">${proveedorTruncado}</span></td>
+            <td>${formatCurrency(item.montoNeto)}</td>
+            <td>${formatCurrency(item.montoExento)}</td>
+            <td>${formatCurrency(montoIVA)}</td>
+            <td>${formatCurrency(item.montoTotal)}</td>
+        `;
+        
+        // Agregar clase visual según tipo de documento
+        if (isNC) {
+            row.style.backgroundColor = 'rgba(239, 68, 68, 0.05)';
+        }
+        
+        comprasTableBody.appendChild(row);
+    });
+    
+    // Generar paginación
+    updatePagination(totalPages);
+    
+    // Mostrar mensaje si no hay datos
+    if (pageData.length === 0) {
+        const emptyRow = document.createElement('tr');
+        emptyRow.innerHTML = `
+            <td colspan="8">
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="fas fa-file-invoice"></i></div>
+                    <div class="empty-title">No se encontraron documentos</div>
+                    <div class="empty-message">No hay compras o notas de crédito que coincidan con los filtros actuales.</div>
+                </div>
+            </td>
+        `;
+        comprasTableBody.appendChild(emptyRow);
+    }
+}
+
+// Actualizar controles de paginación
+function updatePagination(totalPages) {
+    pagination.innerHTML = '';
+    
+    if (totalPages <= 1) {
+        return;
+    }
+    
+    // Texto informativo
+    const infoText = document.createElement('span');
+    infoText.style.marginRight = 'auto';
+    infoText.style.fontSize = '14px';
+    infoText.style.color = 'var(--text-secondary)';
+    
+    const startItem = (currentPage - 1) * rowsPerPage + 1;
+    const endItem = Math.min(startItem + rowsPerPage - 1, filteredData.length);
+    infoText.textContent = `Mostrando ${startItem}-${endItem} de ${filteredData.length} documentos`;
+    
+    pagination.appendChild(infoText);
+    
+    // Botón anterior
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'page-btn';
+    prevBtn.innerHTML = '&laquo;';
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            updateTable();
+        }
+    });
+    pagination.appendChild(prevBtn);
+    
+    // Botones de página
+    // Mostrar páginas: primera, actual -1, actual, actual +1, última
+    const pageNumbers = new Set();
+    pageNumbers.add(1); // Primera página
+    pageNumbers.add(totalPages); // Última página
+    
+    if (currentPage > 1) pageNumbers.add(currentPage - 1);
+    pageNumbers.add(currentPage);
+    if (currentPage < totalPages) pageNumbers.add(currentPage + 1);
+    
+    const sortedPages = [...pageNumbers].sort((a, b) => a - b);
+    
+    let prevPage = 0;
+    sortedPages.forEach(page => {
+        // Agregar elipsis si hay saltos
+        if (page - prevPage > 1) {
+            const ellipsis = document.createElement('span');
+            ellipsis.textContent = '...';
+            ellipsis.className = 'page-btn';
+            ellipsis.style.cursor = 'default';
+            pagination.appendChild(ellipsis);
+        }
+        
+        // Botón de página
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `page-btn ${page === currentPage ? 'active-page' : ''}`;
+        pageBtn.textContent = page;
+        pageBtn.addEventListener('click', () => {
+            currentPage = page;
+            updateTable();
+        });
+        pagination.appendChild(pageBtn);
+        
+        prevPage = page;
+    });
+    
+    // Botón siguiente
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'page-btn';
+    nextBtn.innerHTML = '&raquo;';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.addEventListener('click', () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            updateTable();
+        }
+    });
+    pagination.appendChild(nextBtn);
+}
+
+// Actualizar métricas clave
+function updateKeyMetrics() {
+    const metricsContainer = document.getElementById('key-metrics-container');
+    metricsContainer.innerHTML = '';
+    
+    // 1. Distribución por tipo de IVA
+    const totalIVARecuperable = filteredData.reduce((sum, item) => {
+        const factor = item.esNotaCredito ? -1 : 1;
+        return sum + (item.montoIVARecuperable * factor);
+    }, 0);
+    
+    const totalIVANoRecuperable = filteredData.reduce((sum, item) => {
+        const factor = item.esNotaCredito ? -1 : 1;
+        return sum + (item.montoIVANoRecuperable * factor);
+    }, 0);
+    
+    const totalIVA = totalIVARecuperable + totalIVANoRecuperable;
+    
+    const metricaDistribucionIVA = document.createElement('div');
+    metricaDistribucionIVA.className = 'analysis-metric';
+    
+    let pctIVARecuperable = 0;
+    let pctIVANoRecuperable = 0;
+    
+    if (totalIVA > 0) {
+        pctIVARecuperable = (totalIVARecuperable / totalIVA) * 100;
+        pctIVANoRecuperable = (totalIVANoRecuperable / totalIVA) * 100;
+    }
+    
+    metricaDistribucionIVA.innerHTML = `
+        <div class="metric-title">Distribución del IVA</div>
+        <div class="metric-value">Recuperable: ${formatPercent(pctIVARecuperable)}</div>
+        <div class="metric-info">
+            No Recuperable: ${formatPercent(pctIVANoRecuperable)} | 
+            Total: ${formatCurrency(totalIVA)}
+        </div>
+    `;
+    metricsContainer.appendChild(metricaDistribucionIVA);
+    
+    // 2. Promedio por Documento
+    const totalDocs = filteredData.filter(item => !item.esNotaCredito).length;
+    const totalMontoNeto = filteredData.reduce((sum, item) => {
+        const factor = item.esNotaCredito ? -1 : 1;
+        return sum + (item.montoNeto * factor);
+    }, 0);
+    
+    const promedioDoc = totalDocs > 0 ? totalMontoNeto / totalDocs : 0;
+    
+    const metricaPromedioDoc = document.createElement('div');
+    metricaPromedioDoc.className = 'analysis-metric';
+    metricaPromedioDoc.innerHTML = `
+        <div class="metric-title">Promedio por Documento</div>
+        <div class="metric-value">${formatCurrency(promedioDoc)}</div>
+        <div class="metric-info">basado en ${totalDocs} documento${totalDocs !== 1 ? 's' : ''} de compra</div>
+    `;
+    metricsContainer.appendChild(metricaPromedioDoc);
+    
+    // 3. Porcentaje de Notas de Crédito
+    const countNC = filteredData.filter(item => item.esNotaCredito).length;
+    const totalCount = filteredData.length;
+    const pctNC = totalCount > 0 ? (countNC / totalCount) * 100 : 0;
+    
+    const totalMontoNC = filteredData.filter(item => item.esNotaCredito)
+        .reduce((sum, item) => sum + item.montoTotal, 0);
+    const totalMontoFacturas = filteredData.filter(item => !item.esNotaCredito)
+        .reduce((sum, item) => sum + item.montoTotal, 0);
+    const pctMontoNC = totalMontoFacturas > 0 ? (totalMontoNC / totalMontoFacturas) * 100 : 0;
+    
+    const metricaNC = document.createElement('div');
+    metricaNC.className = 'analysis-metric';
+    metricaNC.innerHTML = `
+        <div class="metric-title">Notas de Crédito vs. Compras</div>
+        <div class="metric-value">${formatPercent(pctNC)}</div>
+        <div class="metric-info">
+            ${countNC} NC de un total de ${totalCount} documentos<br>
+            Representan el ${formatPercent(pctMontoNC)} del monto total facturado
+        </div>
+    `;
+    metricsContainer.appendChild(metricaNC);
+    
+    // 4. Activo Fijo
+    const totalActivoFijo = filteredData.reduce((sum, item) => {
+        const factor = item.esNotaCredito ? -1 : 1;
+        return sum + (item.montoNetoActivoFijo * factor);
+    }, 0);
+    
+    const totalIVAActivoFijo = filteredData.reduce((sum, item) => {
+        const factor = item.esNotaCredito ? -1 : 1;
+        return sum + (item.ivaActivoFijo * factor);
+    }, 0);
+    
+    const pctActivoFijo = totalMontoNeto > 0 ? (totalActivoFijo / totalMontoNeto) * 100 : 0;
+    
+    const metricaActivoFijo = document.createElement('div');
+    metricaActivoFijo.className = 'analysis-metric';
+    metricaActivoFijo.innerHTML = `
+        <div class="metric-title">Activo Fijo</div>
+        <div class="metric-value">${formatCurrency(totalActivoFijo)}</div>
+        <div class="metric-info">
+            Representa el ${formatPercent(pctActivoFijo)} del total neto<br>
+            IVA de Activo Fijo: ${formatCurrency(totalIVAActivoFijo)}
+        </div>
+    `;
+    metricsContainer.appendChild(metricaActivoFijo);
+}
+
+// Inicializar encabezados de tabla ordenables
+document.addEventListener('DOMContentLoaded', function() {
+    updateSortIcons();
+});
+</script>
+</body>
+</html>
