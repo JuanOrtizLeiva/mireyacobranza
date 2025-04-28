@@ -2030,23 +2030,51 @@
             showError(false);
             
             try {
-                // Crear un objeto con los datos que el flujo espera
-                const requestBody = {};
+                console.log("Iniciando solicitud a:", dataFlowUrl);
                 
-                // Realizar solicitud a Power Automate
-                const response = await fetch(dataFlowUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody)
-                });
+                // Intentar solicitud sin cuerpo primero (algunos endpoints prefieren esto)
+                let response;
+                try {
+                    response = await fetch(dataFlowUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                        // Sin body - algunos endpoints prefieren solicitudes POST vacías
+                    });
+                    console.log("Primera respuesta código:", response.status);
+                } catch (e) {
+                    console.error("Error en primera solicitud:", e);
+                    
+                    // Si falla, intentar con un objeto vacío
+                    response = await fetch(dataFlowUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({})
+                    });
+                    console.log("Segunda respuesta código:", response.status);
+                }
                 
                 if (!response.ok) {
-                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    // Si sigue fallando, intentar con GET
+                    try {
+                        response = await fetch(dataFlowUrl, {
+                            method: 'GET'
+                        });
+                        console.log("Respuesta GET código:", response.status);
+                    } catch (e) {
+                        console.error("Error en solicitud GET:", e);
+                    }
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    }
                 }
                 
                 const data = await response.json();
+                console.log("Datos recibidos:", data);
                 
                 // Procesar datos recibidos
                 if (data) {
@@ -2055,21 +2083,32 @@
                     
                     if (Array.isArray(data)) {
                         processedData = data;
+                        console.log("Usando datos como array directo");
                     } else if (data.results && Array.isArray(data.results)) {
                         processedData = data.results;
+                        console.log("Usando data.results");
                     } else if (data.value && Array.isArray(data.value)) {
                         processedData = data.value;
+                        console.log("Usando data.value");
                     } else if (data.data && Array.isArray(data.data)) {
                         processedData = data.data;
+                        console.log("Usando data.data");
                     } else {
                         // Si ninguno de los anteriores funciona, buscar cualquier array en la respuesta
                         const arrayProps = Object.keys(data).find(key => Array.isArray(data[key]));
                         if (arrayProps) {
                             processedData = data[arrayProps];
+                            console.log(`Usando data.${arrayProps}`);
                         } else {
                             // Si todo falla, convertir a array si es un objeto
                             processedData = [data];
+                            console.log("Convirtiendo objeto a array");
                         }
+                    }
+                    
+                    // Verificar la estructura de los datos para debugging
+                    if (processedData.length > 0) {
+                        console.log("Ejemplo de estructura de datos:", processedData[0]);
                     }
                     
                     // Mapear los datos al formato esperado
@@ -2082,12 +2121,12 @@
                             return defaultValue;
                         };
                         
-                        const anio = getValueSafely(item, ['Anio', 'anio', 'year', 'Year', 'año'], new Date().getFullYear());
-                        const mes = getValueSafely(item, ['Mes', 'mes', 'month', 'Month'], new Date().getMonth() + 1);
-                        const periodo = getValueSafely(item, ['Periodo', 'periodo', 'period', 'Period'], `${mes}/${anio}`);
-                        const ventas = getValueSafely(item, ['TotalVentas', 'Ventas', 'ventas', 'totalVentas', 'sales', 'Sales'], 0);
-                        const compras = getValueSafely(item, ['TotalCompras', 'Compras', 'compras', 'totalCompras', 'purchases', 'Purchases'], 0);
-                        const diferencia = getValueSafely(item, ['Diferencia', 'diferencia', 'difference', 'Difference'], ventas - compras);
+                        const anio = getValueSafely(item, ['Anio', 'anio', 'year', 'Year', 'año', 'ANIO'], new Date().getFullYear());
+                        const mes = getValueSafely(item, ['Mes', 'mes', 'month', 'Month', 'MES'], new Date().getMonth() + 1);
+                        const periodo = getValueSafely(item, ['Periodo', 'periodo', 'period', 'Period', 'PERIODO'], `${mes}/${anio}`);
+                        const ventas = getValueSafely(item, ['TotalVentas', 'Ventas', 'ventas', 'totalVentas', 'sales', 'Sales', 'VENTAS'], 0);
+                        const compras = getValueSafely(item, ['TotalCompras', 'Compras', 'compras', 'totalCompras', 'purchases', 'Purchases', 'COMPRAS'], 0);
+                        const diferencia = getValueSafely(item, ['Diferencia', 'diferencia', 'difference', 'Difference', 'DIFERENCIA'], ventas - compras);
                         
                         return {
                             anio: typeof anio === 'number' ? anio : parseInt(anio, 10),
@@ -2098,6 +2137,8 @@
                             diferencia: typeof diferencia === 'number' ? diferencia : parseFloat(diferencia) || 0
                         };
                     });
+                    
+                    console.log("Datos procesados:", reportData);
                     
                     // Ordenar por año y mes (más reciente primero)
                     reportData.sort((a, b) => {
@@ -2123,9 +2164,6 @@
                 console.error('Error al obtener datos:', error);
                 showError(true, `Error al obtener datos: ${error.message}`);
                 showNotification('error', 'Error', 'No se pudieron cargar los datos.');
-                
-                // No se cargan datos de prueba, solo mostramos un mensaje de error
-                showNotification('error', 'Error de conexión', 'No se pudieron obtener datos del servidor. Contacta al administrador del sistema.');
                 
                 // Mostrar mensaje en la interfaz para indicar que no hay datos
                 document.getElementById('chartLoader').innerHTML = '<div style="text-align: center; width: 100%;"><i class="fas fa-exclamation-triangle" style="font-size: 32px; color: #ddd; margin-bottom: 15px;"></i><p>No se pudieron cargar los datos. Intente nuevamente más tarde.</p></div>';
