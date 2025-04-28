@@ -514,33 +514,115 @@
             showError(false);
             
             try {
+                // Crear un objeto con los datos que el flujo de Power Automate espera
+                // Este formato puede necesitar ajustes según la configuración de tu flujo
+                const requestBody = {
+                    // Opción 1: Objeto vacío (algunos flujos no requieren datos)
+                    // No enviar nada
+                };
+                
+                console.log("Enviando solicitud a Power Automate:", dataFlowUrl);
+                console.log("Cuerpo de la solicitud:", JSON.stringify(requestBody));
+                
                 const response = await fetch(dataFlowUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        requestType: 'getData',
-                        requestDate: new Date().toISOString()
-                    })
+                    body: JSON.stringify(requestBody)
                 });
                 
+                console.log("Código de estado:", response.status);
+                console.log("Texto de estado:", response.statusText);
+                
                 if (!response.ok) {
-                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    if (response.status === 400) {
+                        // Intenta nuevamente con un formato diferente si el anterior falló
+                        console.log("Reintentando con formato alternativo...");
+                        const alternativeResponse = await fetch(dataFlowUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                            // Sin body - algunos endpoints prefieren solicitudes vacías
+                        });
+                        
+                        if (!alternativeResponse.ok) {
+                            throw new Error(`Error ${response.status}: ${response.statusText}`);
+                        }
+                        
+                        return await alternativeResponse.json();
+                    } else {
+                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    }
                 }
                 
                 const data = await response.json();
+                console.log("Datos recibidos:", data);
                 
                 // Procesar los datos recibidos (ajustar según la estructura real de respuesta)
-                if (data && Array.isArray(data.results)) {
-                    reportData = data.results.map(item => ({
-                        anio: item.Anio,
-                        mes: item.Mes,
-                        periodo: item.Periodo,
-                        ventas: item.TotalVentas,
-                        compras: item.TotalCompras,
-                        diferencia: item.Diferencia
-                    }));
+                if (data) {
+                    // Intentar extraer los datos según diferentes formatos posibles
+                    let processedData = [];
+                    
+                    if (Array.isArray(data)) {
+                        // Si la respuesta es directamente un array
+                        processedData = data;
+                    } else if (data.results && Array.isArray(data.results)) {
+                        // Si la respuesta tiene una propiedad 'results' que es un array
+                        processedData = data.results;
+                    } else if (data.value && Array.isArray(data.value)) {
+                        // Formato común en APIs de Microsoft
+                        processedData = data.value;
+                    } else if (data.data && Array.isArray(data.data)) {
+                        // Otro formato común
+                        processedData = data.data;
+                    } else {
+                        // Si ninguno de los anteriores funciona, buscar cualquier array en la respuesta
+                        const arrayProps = Object.keys(data).find(key => Array.isArray(data[key]));
+                        if (arrayProps) {
+                            processedData = data[arrayProps];
+                        } else {
+                            // Si todo falla, convertir a array si es un objeto
+                            processedData = [data];
+                        }
+                    }
+                    
+                    // Mapear los datos al formato esperado por nuestro reporte
+                    // Ajustar estas asignaciones según la estructura real de los datos
+                    reportData = processedData.map(item => {
+                        // Intenta extraer los valores de diferentes propiedades posibles
+                        const getValueSafely = (obj, possibleProps, defaultValue) => {
+                            for (const prop of possibleProps) {
+                                if (obj[prop] !== undefined) return obj[prop];
+                            }
+                            return defaultValue;
+                        };
+                        
+                        const anio = getValueSafely(item, ['Anio', 'anio', 'year', 'Year', 'año'], new Date().getFullYear());
+                        const mes = getValueSafely(item, ['Mes', 'mes', 'month', 'Month'], new Date().getMonth() + 1);
+                        const periodo = getValueSafely(item, ['Periodo', 'periodo', 'period', 'Period'], `${mes}/${anio}`);
+                        const ventas = getValueSafely(item, ['TotalVentas', 'Ventas', 'ventas', 'totalVentas', 'sales', 'Sales'], 0);
+                        const compras = getValueSafely(item, ['TotalCompras', 'Compras', 'compras', 'totalCompras', 'purchases', 'Purchases'], 0);
+                        const diferencia = getValueSafely(item, ['Diferencia', 'diferencia', 'difference', 'Difference'], ventas - compras);
+                        
+                        return {
+                            anio: typeof anio === 'number' ? anio : parseInt(anio, 10),
+                            mes: typeof mes === 'number' ? mes : parseInt(mes, 10),
+                            periodo: periodo,
+                            ventas: typeof ventas === 'number' ? ventas : parseFloat(ventas) || 0,
+                            compras: typeof compras === 'number' ? compras : parseFloat(compras) || 0,
+                            diferencia: typeof diferencia === 'number' ? diferencia : parseFloat(diferencia) || 0
+                        };
+                    });
+                    
+                    // Ordenar por año y mes (más reciente primero)
+                    reportData.sort((a, b) => {
+                        if (a.anio !== b.anio) return b.anio - a.anio;
+                        return b.mes - a.mes;
+                    });
+                    
+                    console.log("Datos procesados:", reportData);
                     
                     // Actualizar componentes
                     updateTable();
@@ -557,6 +639,25 @@
                 // Si no hay datos previos, mostrar mensaje
                 if (reportData.length === 0) {
                     document.getElementById('loadingMessage').textContent = 'No se pudieron cargar los datos. Por favor, intente nuevamente.';
+                }
+                
+                // Cargar datos de prueba para desarrollo local
+                if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    console.log("Cargando datos de prueba para desarrollo local...");
+                    reportData = [
+                        { anio: 2025, mes: 4, periodo: 'Abril 2025', ventas: 14500000, compras: 9800000, diferencia: 4700000 },
+                        { anio: 2025, mes: 3, periodo: 'Marzo 2025', ventas: 15200000, compras: 10500000, diferencia: 4700000 },
+                        { anio: 2025, mes: 2, periodo: 'Febrero 2025', ventas: 13200000, compras: 9200000, diferencia: 4000000 },
+                        { anio: 2025, mes: 1, periodo: 'Enero 2025', ventas: 12800000, compras: 9500000, diferencia: 3300000 },
+                        { anio: 2024, mes: 12, periodo: 'Diciembre 2024', ventas: 16500000, compras: 11200000, diferencia: 5300000 },
+                        { anio: 2024, mes: 11, periodo: 'Noviembre 2024', ventas: 14800000, compras: 10300000, diferencia: 4500000 }
+                    ];
+                    updateTable();
+                    updateSummary();
+                    updateChart();
+                    
+                    // Mostrar notificación amigable
+                    showError(true, "Usando datos de prueba para desarrollo local. En producción, conecte a Power Automate.");
                 }
             } finally {
                 setLoadingState(false);
