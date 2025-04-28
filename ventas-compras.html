@@ -3,281 +3,1357 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte de Gestión - Ventas y Compras</title>
+    <title>Dashboard Financiero - Ventas y Compras</title>
+    <!-- Chart.js para gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --primary-dark: #3f37c9;
+            --secondary: #560bad;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --danger: #e63946;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
             margin: 0;
             padding: 0;
-            color: #333;
-            background-color: #f5f5f5;
+            box-sizing: border-box;
         }
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 25px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-            border-radius: 8px;
-            background-color: white;
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f2f5;
+            color: var(--dark);
+            line-height: 1.6;
         }
-        .header {
+        
+        /* PANTALLA DE LOGIN */
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 20px;
+        }
+        
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            padding: 30px;
             text-align: center;
+            animation: fadeIn 1s;
+        }
+        
+        .login-logo {
             margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #f0f0f0;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .login-logo i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+        
+        .login-form {
+            margin-top: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--gray);
+        }
+        
+        .form-input {
             position: relative;
-        }
-        h1 {
-            color: #2c3e50;
-            margin: 0 0 10px 0;
-            font-weight: 600;
-        }
-        .subtitle {
-            color: #7f8c8d;
-            font-size: 16px;
-            margin-bottom: 5px;
-        }
-        .refresh-container {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-        }
-        .btn-refresh {
-            background-color: #3498db;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
             display: flex;
             align-items: center;
-            transition: background-color 0.3s;
         }
-        .btn-refresh:hover {
-            background-color: #2980b9;
+        
+        .form-input i {
+            position: absolute;
+            left: 12px;
+            color: var(--gray);
         }
-        .btn-refresh i {
-            margin-right: 8px;
-        }
-        .btn-refresh:disabled {
-            background-color: #95a5a6;
-            cursor: not-allowed;
-        }
-        table {
+        
+        .form-input input {
             width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        th, td {
+            padding: 12px 12px 12px 40px;
             border: 1px solid #ddd;
-            padding: 12px 15px;
-            text-align: right;
-        }
-        th {
-            background-color: #2c3e50;
-            color: white;
-            text-align: center;
-            font-weight: 500;
-            position: sticky;
-            top: 0;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        tr:hover {
-            background-color: #f1f1f1;
-        }
-        .chart-container {
-            height: 400px;
-            margin-bottom: 30px;
-            padding: 10px;
-            border-radius: 8px;
-            background-color: white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .summary {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .summary h2 {
-            margin-top: 0;
-            font-size: 20px;
-            color: #2c3e50;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #e7e7e7;
-        }
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            padding: 8px 10px;
-            background-color: #fff;
-            border-radius: 4px;
-        }
-        .summary-item:last-child {
-            margin-bottom: 0;
-            font-weight: bold;
-        }
-        .positive { color: #27ae60; font-weight: bold; }
-        .negative { color: #e74c3c; font-weight: bold; }
-        .btn-container {
-            text-align: center;
-            margin-top: 25px;
-        }
-        .btn-action {
-            background-color: #2ecc71;
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+            border-radius: 6px;
             font-size: 16px;
-            transition: background-color 0.3s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: var(--transition);
         }
-        .btn-action:hover {
-            background-color: #27ae60;
+        
+        .form-input input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
         }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            color: #7f8c8d;
+        
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 10px;
+        }
+        
+        .login-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .login-error {
+            color: var(--danger);
+            margin-top: 15px;
             font-size: 14px;
-        }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            font-style: italic;
-            color: #7f8c8d;
-        }
-        .error-message {
-            background-color: #fee;
-            color: #e74c3c;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            text-align: center;
             display: none;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        
+        /* DASHBOARD PRINCIPAL */
+        .dashboard {
+            display: none; /* Inicialmente oculto hasta login */
         }
-        .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
+        
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Filtros */
+        .filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-group label {
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            min-width: 120px;
+            background-color: white;
+        }
+        
+        .filter-btn {
+            padding: 8px 15px;
+            background-color: var(--primary-light);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn:hover {
+            background-color: var(--primary);
+        }
+        
+        .filter-btn-reset {
+            background-color: #f8f9fa;
+            color: var(--gray);
+        }
+        
+        .filter-btn-reset:hover {
+            background-color: #e9ecef;
+            color: var(--dark);
+        }
+        
+        /* Análisis de Margen */
+        .margin-analysis-section {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .margin-section-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .margin-section-title i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+        
+        .margin-card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .margin-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border-top: 3px solid var(--primary);
+        }
+        
+        .margin-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        
+        .margin-card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .margin-card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-right: 12px;
+        }
+        
+        .margin-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray);
+        }
+        
+        .margin-card-value {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+        
+        .margin-card-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .margin-percent {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .margin-positive {
+            color: #27ae60;
+        }
+        
+        .margin-negative {
+            color: #e74c3c;
+        }
+        
+        .margin-neutral {
+            color: #7f8c8d;
+        }
+        
+        .margin-label {
+            font-size: 13px;
+            color: var(--gray);
+        }
+        
+        .margin-trend {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+        }
+        
+        .trend-card {
+            grid-column: span 2;
+        }
+        
+        .margin-trend-chart {
+            height: 120px;
+            margin: 10px 0;
+        }
+        
+        .margin-trend-summary {
+            font-size: 13px;
+            font-style: italic;
+            color: var(--gray);
+        }
+        
+        .margin-chart-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            margin-top: 20px;
+        }
+        
+        .margin-chart-header {
+            margin-bottom: 15px;
+        }
+        
+        .margin-chart-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .margin-chart {
+            height: 300px;
+        }
+        
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 15px 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--primary);
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            font-size: 24px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-name {
+            margin-right: 15px;
+            font-weight: 500;
+        }
+        
+        .logout-btn {
+            padding: 8px 15px;
+            background-color: #f8f9fa;
+            color: var(--gray);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+        }
+        
+        .logout-btn i {
             margin-right: 8px;
         }
-        .last-update {
-            font-size: 13px;
-            color: #7f8c8d;
-            text-align: center;
-            margin-top: 5px;
+        
+        .logout-btn:hover {
+            background-color: #e9ecef;
+            color: var(--danger);
         }
+        
+        .main-content {
+            margin-bottom: 30px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+        
+        .refresh-btn {
+            padding: 10px 15px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+        }
+        
+        .refresh-btn i {
+            margin-right: 8px;
+        }
+        
+        .refresh-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .refresh-btn:disabled {
+            background-color: var(--gray);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 18px;
+        }
+        
+        .icon-ventas {
+            background-color: rgba(76, 201, 240, 0.2);
+            color: var(--success);
+        }
+        
+        .icon-compras {
+            background-color: rgba(247, 37, 133, 0.2);
+            color: var(--warning);
+        }
+        
+        .icon-diferencia {
+            background-color: rgba(86, 11, 173, 0.2);
+            color: var(--secondary);
+        }
+        
+        .card-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--gray);
+            margin: 0;
+        }
+        
+        .card-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+        
+        .card-footer {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        
+        .trend-up {
+            color: #4cc9f0;
+            margin-right: 8px;
+        }
+        
+        .trend-down {
+            color: #f72585;
+            margin-right: 8px;
+        }
+        
+        .chart-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+        
+        .chart-title i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+        
+        .chart-container {
+            height: 400px;
+            position: relative;
+        }
+        
+        .table-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .table-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+        
+        .table-title i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th, .data-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .data-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .value-positive {
+            color: #4cc9f0;
+            font-weight: 600;
+        }
+        
+        .value-negative {
+            color: #f72585;
+            font-weight: 600;
+        }
+        
+        .info-section {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            margin-top: 30px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .info-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+        }
+        
+        .info-title i {
+            margin-right: 10px;
+        }
+        
+        .info-content {
+            font-size: 15px;
+            line-height: 1.7;
+            color: var(--gray);
+        }
+        
+        .info-content p {
+            margin-bottom: 10px;
+        }
+        
+        .info-content ul {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .info-content li {
+            margin-bottom: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 14px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            margin-top: 30px;
+        }
+        
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        /* Loader */
+        .loader {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+        }
+        
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            border: 0.25rem solid var(--primary-light);
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spinner 1s linear infinite;
+        }
+        
+        /* Error messages */
+        .error-container {
+            background-color: #ffefef;
+            border-left: 4px solid var(--danger);
+            color: var(--danger);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .error-container i {
+            margin-right: 10px;
+        }
+        
+        /* Animaciones */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes spinner {
+            to { transform: rotate(360deg); }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
         /* Estilos responsivos */
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-                margin: 10px;
+        @media (max-width: 992px) {
+            .card-container {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             }
-            table {
+        }
+        
+        @media (max-width: 768px) {
+            .top-bar {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .user-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .user-name {
+                margin-right: 0;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .data-table {
                 display: block;
                 overflow-x: auto;
             }
-            .btn-refresh {
-                padding: 6px 12px;
-                font-size: 12px;
-            }
-            .chart-container {
-                height: 300px;
-            }
+        }
+        
+        /* Tooltips */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 14px;
+            font-weight: normal;
+        }
+        
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Notificaciones */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification-success {
+            border-left: 4px solid #4cc9f0;
+        }
+        
+        .notification-error {
+            border-left: 4px solid #f72585;
+        }
+        
+        .notification i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        
+        .notification-success i {
+            color: #4cc9f0;
+        }
+        
+        .notification-error i {
+            color: #f72585;
+        }
+        
+        .notification-content {
+            margin-right: 15px;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .notification-message {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        .notification-close {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Reporte de Gestión - Ventas y Compras</h1>
-            <div class="subtitle">Libros Electrónicos de Chile</div>
-            <div id="reportDate" class="subtitle"></div>
-            <div class="refresh-container">
-                <button id="btnRefresh" class="btn-refresh" onclick="fetchData()">
-                    <div id="refreshSpinner" class="spinner" style="display: none;"></div>
-                    <span id="refreshText">Actualizar datos</span>
+    <!-- Pantalla de Login -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <div class="login-logo">
+                <i class="fas fa-chart-line"></i> Dashboard Financiero
+            </div>
+            <div class="login-form">
+                <div class="form-group">
+                    <label for="username">Usuario</label>
+                    <div class="form-input">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="username" placeholder="Ingrese su usuario">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <div class="form-input">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" placeholder="Ingrese su contraseña">
+                    </div>
+                </div>
+                <button id="loginBtn" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
                 </button>
+                <p id="loginError" class="login-error">Usuario o contraseña incorrectos</p>
             </div>
-            <div class="last-update" id="lastUpdate">Sin datos cargados</div>
-        </div>
-        
-        <div id="errorMessage" class="error-message">
-            Error al cargar los datos. Por favor intente nuevamente.
-        </div>
-        
-        <div class="summary">
-            <h2>Resumen</h2>
-            <div class="summary-item">
-                <span>Total Ventas (Año actual):</span>
-                <span id="totalVentas" class="positive">$0</span>
-            </div>
-            <div class="summary-item">
-                <span>Total Compras (Año actual):</span>
-                <span id="totalCompras">$0</span>
-            </div>
-            <div class="summary-item">
-                <span>Diferencia Total:</span>
-                <span id="totalDiferencia">$0</span>
-            </div>
-        </div>
-        
-        <div class="chart-container">
-            <canvas id="reportChart"></canvas>
-        </div>
-        
-        <div id="tableContainer">
-            <div id="loadingMessage" class="loading">Aún no hay datos cargados. Haga clic en "Actualizar datos" para obtener la información más reciente.</div>
-            <table id="reportTable" style="display: none;">
-                <thead>
-                    <tr>
-                        <th>Período</th>
-                        <th>Ventas</th>
-                        <th>Compras</th>
-                        <th>Diferencia</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Aquí se insertarán dinámicamente las filas de datos -->
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="footer">
-            <p></p>
         </div>
     </div>
-
+    
+    <!-- Dashboard Principal -->
+    <div id="dashboard" class="dashboard">
+        <div class="dashboard-container">
+            <!-- Barra Superior -->
+            <div class="top-bar">
+                <div class="logo">
+                    <i class="fas fa-chart-line"></i> Dashboard Financiero
+                </div>
+                <div class="user-info">
+                    <div class="user-name">Bienvenido, <span id="userDisplay">Usuario</span></div>
+                    <button id="logoutBtn" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Error Container -->
+            <div id="errorContainer" class="error-container">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorMessage">Error al cargar los datos</span>
+            </div>
+            
+            <!-- Contenido Principal -->
+            <div class="main-content">
+                <!-- Encabezado de Sección con Filtros -->
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-file-invoice-dollar"></i> Reporte de Ventas y Compras
+                    </h2>
+                    <div class="filter-container">
+                        <div class="filter-group">
+                            <label for="yearFilter">Año:</label>
+                            <select id="yearFilter" class="filter-select">
+                                <option value="todos">Todos</option>
+                                <!-- Se llenará dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="monthFilter">Mes:</label>
+                            <select id="monthFilter" class="filter-select">
+                                <option value="todos">Todos</option>
+                                <option value="1">Enero</option>
+                                <option value="2">Febrero</option>
+                                <option value="3">Marzo</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Mayo</option>
+                                <option value="6">Junio</option>
+                                <option value="7">Julio</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Septiembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Noviembre</option>
+                                <option value="12">Diciembre</option>
+                            </select>
+                        </div>
+                        <button id="applyFilter" class="filter-btn">
+                            <i class="fas fa-filter"></i> Aplicar
+                        </button>
+                        <button id="resetFilter" class="filter-btn filter-btn-reset">
+                            <i class="fas fa-undo"></i> Reiniciar
+                        </button>
+                        <button id="refreshBtn" class="refresh-btn">
+                            <i class="fas fa-sync-alt"></i> Actualizar Datos
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Tarjetas de Resumen -->
+                <div class="card-container">
+                    <!-- Tarjeta de Ventas -->
+                    <div class="card animate-fade-in" style="animation-delay: 0.1s;">
+                        <div class="card-header">
+                            <div class="card-icon icon-ventas">
+                                <i class="fas fa-arrow-up"></i>
+                            </div>
+                            <div>
+                                <h3 class="card-title">Total Ventas (Año actual)</h3>
+                            </div>
+                        </div>
+                        <div class="card-value" id="totalVentas">$0</div>
+                        <div class="card-footer">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span id="yearDisplay">2025</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Tarjeta de Compras -->
+                    <div class="card animate-fade-in" style="animation-delay: 0.2s;">
+                        <div class="card-header">
+                            <div class="card-icon icon-compras">
+                                <i class="fas fa-arrow-down"></i>
+                            </div>
+                            <div>
+                                <h3 class="card-title">Total Compras (Año actual)</h3>
+                            </div>
+                        </div>
+                        <div class="card-value" id="totalCompras">$0</div>
+                        <div class="card-footer">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>2025</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Tarjeta de Diferencia -->
+                    <div class="card animate-fade-in" style="animation-delay: 0.3s;">
+                        <div class="card-header">
+                            <div class="card-icon icon-diferencia">
+                                <i class="fas fa-balance-scale"></i>
+                            </div>
+                            <div>
+                                <h3 class="card-title">Diferencia Total</h3>
+                            </div>
+                        </div>
+                        <div class="card-value" id="totalDiferencia">$0</div>
+                        <div class="card-footer">
+                            <span id="difTrend" class="trend-up">
+                                <i class="fas fa-arrow-up"></i> Positivo
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Gráfico Principal -->
+                <div class="chart-card animate-fade-in" style="animation-delay: 0.4s;">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <i class="fas fa-chart-bar"></i> Evolución Mensual
+                            <div class="tooltip">
+                                <i class="fas fa-info-circle" style="margin-left: 8px; color: var(--gray);"></i>
+                                <span class="tooltiptext">Este gráfico muestra la comparación mensual entre ventas, compras y la diferencia resultante.</span>
+                            </div>
+                        </div>
+                        <div id="lastUpdateTime" style="color: var(--gray); font-size: 14px;">
+                            <i class="far fa-clock"></i> Última actualización: --:--
+                        </div>
+                    </div>
+                    <div id="chartLoader" class="loader">
+                        <div class="spinner-border"></div>
+                    </div>
+                    <div id="mainChartContainer" class="chart-container" style="display: none;">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Tabla de Datos -->
+                <div class="table-card animate-fade-in" style="animation-delay: 0.5s;">
+                    <div class="table-header">
+                        <div class="table-title">
+                            <i class="fas fa-table"></i> Detalle Mensual
+                            <div class="tooltip">
+                                <i class="fas fa-info-circle" style="margin-left: 8px; color: var(--gray);"></i>
+                                <span class="tooltiptext">Esta tabla muestra el detalle de ventas, compras y diferencias por cada mes.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tableLoader" class="loader">
+                        <div class="spinner-border"></div>
+                    </div>
+                    <div id="tableContainer" style="display: none; overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Período</th>
+                                    <th>Ventas</th>
+                                    <th>Compras</th>
+                                    <th>Diferencia</th>
+                                    <th>Margen %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <!-- Aquí se insertan los datos dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Análisis Detallado de Margen -->
+                <div class="margin-analysis-section animate-fade-in" style="animation-delay: 0.6s;">
+                    <div class="section-title margin-section-title">
+                        <i class="fas fa-chart-line"></i> Análisis Detallado de Margen
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle" style="margin-left: 8px; color: var(--gray);"></i>
+                            <span class="tooltiptext">Este análisis muestra métricas detalladas sobre el margen entre ventas y compras, incluyendo comparaciones históricas y tendencias.</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Tarjetas de Análisis de Margen -->
+                    <div class="margin-card-container">
+                        <!-- Margen Actual -->
+                        <div class="margin-card animate-fade-in" style="animation-delay: 0.7s;">
+                            <div class="margin-card-header">
+                                <div class="margin-card-icon">
+                                    <i class="fas fa-calculator"></i>
+                                </div>
+                                <div class="margin-card-title">Margen Actual</div>
+                            </div>
+                            <div class="margin-card-value" id="currentMargin">$0</div>
+                            <div class="margin-card-footer">
+                                <div class="margin-percent" id="currentMarginPercent">0%</div>
+                                <div class="margin-label">del total de ventas</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Variación vs Mes Anterior -->
+                        <div class="margin-card animate-fade-in" style="animation-delay: 0.8s;">
+                            <div class="margin-card-header">
+                                <div class="margin-card-icon">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </div>
+                                <div class="margin-card-title">Variación vs Mes Anterior</div>
+                            </div>
+                            <div class="margin-card-value" id="monthlyVariation">$0</div>
+                            <div class="margin-card-footer">
+                                <div class="margin-percent" id="monthlyVariationPercent">0%</div>
+                                <div class="margin-trend" id="monthlyTrend">
+                                    <i class="fas fa-minus"></i> Sin cambios
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Variación vs Año Anterior -->
+                        <div class="margin-card animate-fade-in" style="animation-delay: 0.9s;">
+                            <div class="margin-card-header">
+                                <div class="margin-card-icon">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div class="margin-card-title">Variación Anual</div>
+                            </div>
+                            <div class="margin-card-value" id="yearlyVariation">$0</div>
+                            <div class="margin-card-footer">
+                                <div class="margin-percent" id="yearlyVariationPercent">0%</div>
+                                <div class="margin-trend" id="yearlyTrend">
+                                    <i class="fas fa-minus"></i> Sin cambios
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tendencia del Margen -->
+                        <div class="margin-card trend-card animate-fade-in" style="animation-delay: 1s;">
+                            <div class="margin-card-header">
+                                <div class="margin-card-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="margin-card-title">Tendencia del Margen</div>
+                            </div>
+                            <div class="margin-trend-chart">
+                                <canvas id="marginTrendChart"></canvas>
+                            </div>
+                            <div class="margin-card-footer">
+                                <div class="margin-trend-summary" id="trendSummary">Pendiente de datos</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Gráfico de Margen Porcentual -->
+                    <div class="margin-chart-container animate-fade-in" style="animation-delay: 1.1s;">
+                        <div class="margin-chart-header">
+                            <h3><i class="fas fa-percentage"></i> Evolución del Margen Porcentual</h3>
+                        </div>
+                        <div class="margin-chart">
+                            <canvas id="marginPercentChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección de Información -->
+                <div class="info-section animate-fade-in" style="animation-delay: 1.2s;">
+                    <div class="info-title">
+                        <i class="fas fa-info-circle"></i> Acerca de este Reporte
+                    </div>
+                    <div class="info-content">
+                        <p>Este dashboard muestra la información consolidada de ventas y compras basada en los libros electrónicos de contabilidad. Los datos son extraídos directamente desde el sistema a través de consultas SQL que analizan las siguientes fuentes:</p>
+                        
+                        <ul>
+                            <li><strong>Facturas de Venta:</strong> Documentos tipo 33 y sus notas de crédito asociadas (tipo 61)</li>
+                            <li><strong>Facturas de Compra:</strong> Incluye montos netos, exentos e IVA recuperable/no recuperable</li>
+                        </ul>
+                        
+                        <p>Para el cálculo se utilizan las siguientes fórmulas:</p>
+                        
+                        <ul>
+                            <li><strong>Ventas Totales:</strong> Venta Neta + Exento - Notas de Crédito</li>
+                            <li><strong>Compras Totales:</strong> Compra Neta + Exento - Notas de Crédito</li>
+                            <li><strong>Diferencia:</strong> Ventas Totales - Compras Totales</li>
+                            <li><strong>Margen Porcentual:</strong> (Diferencia / Ventas Totales) × 100</li>
+                        </ul>
+                        
+                        <p>Los datos se actualizan en tiempo real al hacer clic en el botón "Actualizar Datos" y provienen directamente de las tablas de la base de datos. Puede utilizar los filtros de año y mes para analizar períodos específicos.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p>Dashboard Financiero &copy; 2025 | Desarrollado para análisis de libros electrónicos</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notificación -->
+    <div id="notification" class="notification notification-success">
+        <i id="notificationIcon" class="fas fa-check-circle"></i>
+        <div class="notification-content">
+            <div id="notificationTitle" class="notification-title">Éxito</div>
+            <div id="notificationMessage" class="notification-message">Los datos se han actualizado correctamente.</div>
+        </div>
+        <button id="notificationClose" class="notification-close">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
+    <!-- Scripts -->
     <script>
-        // Variable global para almacenar los datos del reporte
-        let reportData = [];
-        let reportChart = null;
-        
         // URL del flujo de Power Automate para obtener datos
         const dataFlowUrl = "https://prod-39.westus.logic.azure.com:443/workflows/b97c2b90113d49d7a0bf01071e32bff9/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=uP10-qTeIrV-oY3zwbjHvKWOwY815dBaw7Jh6yE9jNg";
         
-        // URL del flujo de Power Automate para obtener datos
-        // Ya se define arriba
+        // Credenciales de acceso
+        const validCredentials = {
+            username: "prueba",
+            password: "123#"
+        };
+        
+        // Variables globales
+        let reportData = [];          // Datos completos del reporte
+        let filteredData = [];        // Datos filtrados por año/mes
+        let mainChart = null;         // Gráfico principal
+        let marginTrendChart = null;  // Gráfico de tendencia de margen
+        let marginPercentChart = null; // Gráfico de margen porcentual
+        
+        // Elementos DOM
+        const loginScreen = document.getElementById('loginScreen');
+        const dashboard = document.getElementById('dashboard');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const loginError = document.getElementById('loginError');
+        const username = document.getElementById('username');
+        const password = document.getElementById('password');
+        const userDisplay = document.getElementById('userDisplay');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const errorContainer = document.getElementById('errorContainer');
+        const errorMessage = document.getElementById('errorMessage');
+        const notification = document.getElementById('notification');
+        const notificationTitle = document.getElementById('notificationTitle');
+        const notificationMessage = document.getElementById('notificationMessage');
+        const notificationIcon = document.getElementById('notificationIcon');
+        const notificationClose = document.getElementById('notificationClose');
+        const chartLoader = document.getElementById('chartLoader');
+        const mainChartContainer = document.getElementById('mainChartContainer');
+        const tableLoader = document.getElementById('tableLoader');
+        const tableContainer = document.getElementById('tableContainer');
+        
+        // Función para validar login
+        loginBtn.addEventListener('click', () => {
+            const usernameValue = username.value.trim();
+            const passwordValue = password.value.trim();
+            
+            if (usernameValue === validCredentials.username && passwordValue === validCredentials.password) {
+                // Login exitoso
+                loginScreen.style.display = 'none';
+                dashboard.style.display = 'block';
+                userDisplay.textContent = usernameValue;
+                loginError.style.display = 'none';
+                
+                // Cargar datos iniciales
+                fetchData();
+                
+                // Mostrar notificación de bienvenida
+                showNotification('success', 'Bienvenido', 'Sesión iniciada correctamente.');
+            } else {
+                // Login fallido
+                loginError.style.display = 'block';
+                password.value = '';
+            }
+        });
+        
+        // Escuchar Enter en campos de login
+        password.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                loginBtn.click();
+            }
+        });
+        
+        username.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                password.focus();
+            }
+        });
+        
+        // Función para cerrar sesión
+        logoutBtn.addEventListener('click', () => {
+            loginScreen.style.display = 'flex';
+            dashboard.style.display = 'none';
+            username.value = '';
+            password.value = '';
+            showNotification('success', 'Sesión cerrada', 'Ha cerrado sesión correctamente.');
+        });
+        
+        // Función para actualizar datos
+        refreshBtn.addEventListener('click', fetchData);
+        
+        // Eventos para filtros
+        document.getElementById('applyFilter').addEventListener('click', applyFilters);
+        document.getElementById('resetFilter').addEventListener('click', resetFilters);
+        
+        // Cerrar notificación
+        notificationClose.addEventListener('click', () => {
+            notification.classList.remove('show');
+        });
+        
+        // Función para mostrar notificaciones
+        function showNotification(type, title, message) {
+            // Configurar notificación
+            notification.className = `notification notification-${type}`;
+            notificationTitle.textContent = title;
+            notificationMessage.textContent = message;
+            
+            if (type === 'success') {
+                notificationIcon.className = 'fas fa-check-circle';
+            } else {
+                notificationIcon.className = 'fas fa-exclamation-circle';
+            }
+            
+            // Mostrar notificación
+            notification.classList.add('show');
+            
+            // Ocultar automáticamente después de 5 segundos
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+        
+        // Función para mostrar/ocultar mensaje de error
+        function showError(show, msg = 'Error al cargar los datos') {
+            if (show) {
+                errorContainer.style.display = 'block';
+                errorMessage.textContent = msg;
+            } else {
+                errorContainer.style.display = 'none';
+            }
+        }
         
         // Función para formatear moneda CLP
         function formatCLP(num) {
@@ -299,84 +1375,104 @@
             }).format(num);
         }
         
-        // Función para actualizar la tabla con datos
-        function updateTable() {
-            const tableBody = document.querySelector('#reportTable tbody');
-            tableBody.innerHTML = '';
-            
-            if (reportData.length === 0) {
-                document.getElementById('loadingMessage').style.display = 'block';
-                document.getElementById('reportTable').style.display = 'none';
-                return;
-            }
-            
-            document.getElementById('loadingMessage').style.display = 'none';
-            document.getElementById('reportTable').style.display = 'table';
-            
-            reportData.forEach(row => {
-                const tr = document.createElement('tr');
-                
-                // Crear celdas
-                tr.innerHTML = `
-                    <td>${row.periodo}</td>
-                    <td>${formatCLP(row.ventas)}</td>
-                    <td>${formatCLP(row.compras)}</td>
-                    <td class="${row.diferencia >= 0 ? 'positive' : 'negative'}">${formatCLP(row.diferencia)}</td>
-                `;
-                
-                tableBody.appendChild(tr);
-            });
+        // Función para actualizar timestamp
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const options = { 
+                day: '2-digit', 
+                month: 'short', 
+                year: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            };
+            const formattedDate = now.toLocaleDateString('es-CL', options);
+            document.getElementById('lastUpdateTime').innerHTML = `<i class="far fa-clock"></i> Última actualización: ${formattedDate}`;
         }
         
-        // Función para actualizar el resumen
-        function updateSummary() {
-            if (reportData.length === 0) {
+        // Función para actualizar las tarjetas resumen
+        function updateSummaryCards() {
+            if (filteredData.length === 0) {
                 document.getElementById('totalVentas').textContent = formatCLP(0);
                 document.getElementById('totalCompras').textContent = formatCLP(0);
                 document.getElementById('totalDiferencia').textContent = formatCLP(0);
+                document.getElementById('difTrend').innerHTML = '<i class="fas fa-minus"></i> Sin datos';
+                document.getElementById('difTrend').className = '';
                 return;
             }
             
-            const currentYear = new Date().getFullYear();
-            
-            // Filtrar datos del año actual
-            const currentYearData = reportData.filter(item => item.anio === currentYear);
-            
-            // Calcular totales
-            const totalVentas = currentYearData.reduce((sum, item) => sum + item.ventas, 0);
-            const totalCompras = currentYearData.reduce((sum, item) => sum + item.compras, 0);
+            // Calcular totales de los datos filtrados
+            const totalVentas = filteredData.reduce((sum, item) => sum + item.ventas, 0);
+            const totalCompras = filteredData.reduce((sum, item) => sum + item.compras, 0);
             const totalDiferencia = totalVentas - totalCompras;
+            
+            // Mostrar año en la tarjeta según el filtro
+            const yearFilter = document.getElementById('yearFilter').value;
+            if (yearFilter !== 'todos') {
+                document.getElementById('yearDisplay').textContent = yearFilter;
+            } else {
+                const currentYear = new Date().getFullYear();
+                document.getElementById('yearDisplay').textContent = currentYear;
+            }
             
             // Actualizar elementos HTML
             document.getElementById('totalVentas').textContent = formatCLP(totalVentas);
             document.getElementById('totalCompras').textContent = formatCLP(totalCompras);
+            document.getElementById('totalDiferencia').textContent = formatCLP(totalDiferencia);
             
-            const diferenciaElement = document.getElementById('totalDiferencia');
-            diferenciaElement.textContent = formatCLP(totalDiferencia);
-            diferenciaElement.className = totalDiferencia >= 0 ? 'positive' : 'negative';
+            // Calcular margen porcentual
+            const marginPercent = (totalDiferencia / totalVentas) * 100;
+            
+            // Actualizar tendencia
+            const difTrend = document.getElementById('difTrend');
+            if (totalDiferencia > 0) {
+                difTrend.innerHTML = `<i class="fas fa-arrow-up"></i> Positivo (${marginPercent.toFixed(1)}%)`;
+                difTrend.className = 'trend-up';
+            } else if (totalDiferencia < 0) {
+                difTrend.innerHTML = `<i class="fas fa-arrow-down"></i> Negativo (${marginPercent.toFixed(1)}%)`;
+                difTrend.className = 'trend-down';
+            } else {
+                difTrend.innerHTML = '<i class="fas fa-minus"></i> Neutro (0%)';
+                difTrend.className = '';
+            }
         }
         
-        // Función para actualizar o crear el gráfico
-        function updateChart() {
-            const ctx = document.getElementById('reportChart').getContext('2d');
+        // Función para actualizar el gráfico principal
+        function updateMainChart() {
+            const ctx = document.getElementById('mainChart').getContext('2d');
             
-            if (reportData.length === 0) {
-                if (reportChart) {
-                    reportChart.destroy();
-                    reportChart = null;
-                }
+            if (filteredData.length === 0) {
+                chartLoader.style.display = 'flex';
+                mainChartContainer.style.display = 'none';
                 return;
             }
             
-            // Revertir el orden para mostrar los meses en orden cronológico
-            const chartData = [...reportData].reverse();
+            chartLoader.style.display = 'none';
+            mainChartContainer.style.display = 'block';
+            
+            // Ordenar datos cronológicamente
+            const chartData = [...filteredData].sort((a, b) => {
+                if (a.anio !== b.anio) return a.anio - b.anio;
+                return a.mes - b.mes;
+            });
+            
+            // Limitar a los últimos 12 meses para mejor visualización si no hay filtros específicos
+            const yearFilter = document.getElementById('yearFilter').value;
+            const monthFilter = document.getElementById('monthFilter').value;
+            
+            let limitedData;
+            if (yearFilter === 'todos' && monthFilter === 'todos') {
+                limitedData = chartData.slice(-12);
+            } else {
+                limitedData = chartData;
+            }
             
             // Preparar datos para el gráfico
-            const labels = chartData.map(item => item.periodo);
-            const ventasData = chartData.map(item => item.ventas);
-            const comprasData = chartData.map(item => item.compras);
-            const diferenciaData = chartData.map(item => item.diferencia);
+            const labels = limitedData.map(item => item.periodo);
+            const ventasData = limitedData.map(item => item.ventas);
+            const comprasData = limitedData.map(item => item.compras);
+            const diferenciaData = limitedData.map(item => item.diferencia);
             
+            // Configuración del gráfico
             const chartConfig = {
                 type: 'bar',
                 data: {
@@ -385,44 +1481,68 @@
                         {
                             label: 'Ventas',
                             data: ventasData,
-                            backgroundColor: 'rgba(52, 152, 219, 0.6)',
-                            borderColor: 'rgb(52, 152, 219)',
-                            borderWidth: 1
+                            backgroundColor: 'rgba(76, 201, 240, 0.6)',
+                            borderColor: 'rgb(76, 201, 240)',
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            barThickness: 'flex',
+                            maxBarThickness: 35
                         },
                         {
                             label: 'Compras',
                             data: comprasData,
-                            backgroundColor: 'rgba(231, 76, 60, 0.6)',
-                            borderColor: 'rgb(231, 76, 60)',
-                            borderWidth: 1
+                            backgroundColor: 'rgba(247, 37, 133, 0.6)',
+                            borderColor: 'rgb(247, 37, 133)',
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            barThickness: 'flex',
+                            maxBarThickness: 35
                         },
                         {
                             label: 'Diferencia',
                             type: 'line',
                             data: diferenciaData,
-                            backgroundColor: 'rgba(46, 204, 113, 0.2)',
-                            borderColor: 'rgb(46, 204, 113)',
-                            borderWidth: 2,
-                            fill: false,
-                            tension: 0.1
+                            backgroundColor: 'rgba(86, 11, 173, 0.1)',
+                            borderColor: 'rgb(86, 11, 173)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointBackgroundColor: 'rgb(86, 11, 173)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    },
                     plugins: {
-                        title: {
-                            display: true,
-                            text: 'Evolución Mensual de Ventas y Compras',
-                            font: {
-                                size: 16
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 10,
+                                padding: 20,
+                                font: {
+                                    size: 12
+                                }
                             }
                         },
-                        legend: {
-                            position: 'top'
-                        },
                         tooltip: {
+                            backgroundColor: 'rgba(33, 37, 41, 0.9)',
+                            padding: 12,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
                             callbacks: {
                                 label: function(context) {
                                     let label = context.dataset.label || '';
@@ -438,8 +1558,16 @@
                         }
                     },
                     scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
                         y: {
                             beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
                             ticks: {
                                 callback: function(value) {
                                     return formatCLPCompact(value);
@@ -451,79 +1579,461 @@
             };
             
             // Si ya existe un gráfico, destruirlo
-            if (reportChart) {
-                reportChart.destroy();
+            if (mainChart) {
+                mainChart.destroy();
             }
             
             // Crear nuevo gráfico
-            reportChart = new Chart(ctx, chartConfig);
+            mainChart = new Chart(ctx, chartConfig);
         }
         
-        // Función para mostrar el estado de carga
-        function setLoadingState(isLoading) {
-            const refreshButton = document.getElementById('btnRefresh');
-            const refreshSpinner = document.getElementById('refreshSpinner');
-            const refreshText = document.getElementById('refreshText');
+        // Función para actualizar la tabla de datos
+        function updateDataTable() {
+            const tableBody = document.getElementById('tableBody');
             
-            refreshButton.disabled = isLoading;
-            
-            if (isLoading) {
-                refreshSpinner.style.display = 'inline-block';
-                refreshText.textContent = 'Cargando...';
-            } else {
-                refreshSpinner.style.display = 'none';
-                refreshText.textContent = 'Actualizar datos';
+            if (filteredData.length === 0) {
+                tableLoader.style.display = 'flex';
+                tableContainer.style.display = 'none';
+                return;
             }
-        }
-        
-        // Función para mostrar mensajes de error
-        function showError(show, message = 'Error al cargar los datos. Por favor intente nuevamente.') {
-            const errorElement = document.getElementById('errorMessage');
             
-            if (show) {
-                errorElement.textContent = message;
-                errorElement.style.display = 'block';
+            tableLoader.style.display = 'none';
+            tableContainer.style.display = 'block';
+            
+            // Vaciar tabla
+            tableBody.innerHTML = '';
+            
+            // Llenar con datos filtrados
+            filteredData.forEach(row => {
+                const tr = document.createElement('tr');
                 
-                // Ocultar mensaje después de 5 segundos
-                setTimeout(() => {
-                    errorElement.style.display = 'none';
-                }, 5000);
-            } else {
-                errorElement.style.display = 'none';
+                // Crear columnas de estado
+                let statusIcon, statusClass;
+                if (row.diferencia > 0) {
+                    statusIcon = '<i class="fas fa-arrow-up"></i>';
+                    statusClass = 'value-positive';
+                } else if (row.diferencia < 0) {
+                    statusIcon = '<i class="fas fa-arrow-down"></i>';
+                    statusClass = 'value-negative';
+                } else {
+                    statusIcon = '<i class="fas fa-minus"></i>';
+                    statusClass = '';
+                }
+                
+                // Calcular margen porcentual
+                const marginPercent = (row.diferencia / row.ventas) * 100;
+                
+                // Crear celdas
+                tr.innerHTML = `
+                    <td>${row.periodo}</td>
+                    <td>${formatCLP(row.ventas)}</td>
+                    <td>${formatCLP(row.compras)}</td>
+                    <td class="${row.diferencia >= 0 ? 'value-positive' : 'value-negative'}">${formatCLP(row.diferencia)}</td>
+                    <td class="${statusClass}">${statusIcon} ${marginPercent.toFixed(1)}%</td>
+                `;
+                
+                tableBody.appendChild(tr);
+            });
+        }
+        
+        // Función para aplicar filtros
+        function applyFilters() {
+            const yearFilter = document.getElementById('yearFilter').value;
+            const monthFilter = document.getElementById('monthFilter').value;
+            
+            // Filtrar datos
+            filteredData = [...reportData];
+            
+            if (yearFilter !== 'todos') {
+                const year = parseInt(yearFilter);
+                filteredData = filteredData.filter(item => item.anio === year);
+            }
+            
+            if (monthFilter !== 'todos') {
+                const month = parseInt(monthFilter);
+                filteredData = filteredData.filter(item => item.mes === month);
+            }
+            
+            // Actualizar componentes con datos filtrados
+            updateAllComponents();
+            
+            // Mostrar mensaje sobre los filtros aplicados
+            let filterMessage = 'Mostrando datos';
+            if (yearFilter !== 'todos') {
+                filterMessage += ` del año ${yearFilter}`;
+            }
+            if (monthFilter !== 'todos') {
+                const monthNames = [
+                    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+                ];
+                filterMessage += ` de ${monthNames[parseInt(monthFilter)-1]}`;
+            }
+            
+            if (yearFilter === 'todos' && monthFilter === 'todos') {
+                filterMessage = 'Mostrando todos los datos disponibles';
+            }
+            
+            showNotification('success', 'Filtros aplicados', filterMessage);
+        }
+        
+        // Función para resetear filtros
+        function resetFilters() {
+            document.getElementById('yearFilter').value = 'todos';
+            document.getElementById('monthFilter').value = 'todos';
+            
+            // Usar todos los datos
+            filteredData = [...reportData];
+            
+            // Actualizar componentes
+            updateAllComponents();
+            
+            showNotification('success', 'Filtros reiniciados', 'Mostrando todos los datos disponibles');
+        }
+        
+        // Función para llenar selectores de años
+        function populateYearFilter() {
+            const yearFilter = document.getElementById('yearFilter');
+            yearFilter.innerHTML = '<option value="todos">Todos</option>';
+            
+            if (reportData.length > 0) {
+                // Obtener años únicos
+                const years = [...new Set(reportData.map(item => item.anio))];
+                years.sort((a, b) => b - a); // Ordenar descendente
+                
+                // Añadir opciones
+                years.forEach(year => {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    yearFilter.appendChild(option);
+                });
             }
         }
         
-        // Función para actualizar la hora de última actualización
-        function updateLastUpdateTime() {
-            const options = { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric', 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                second: '2-digit' 
+        // Función para actualizar análisis de margen
+        function updateMarginAnalysis() {
+            // Si no hay datos, salir
+            if (filteredData.length === 0) return;
+            
+            // Ordenar datos por fecha (más reciente primero)
+            const sortedData = [...filteredData].sort((a, b) => {
+                if (a.anio !== b.anio) return b.anio - a.anio;
+                return b.mes - a.mes;
+            });
+            
+            // Datos actuales (último período)
+            const currentData = sortedData[0];
+            
+            // Datos del mes anterior (si existen)
+            const previousMonthData = sortedData.find(item => {
+                if (currentData.mes === 1) {
+                    return item.mes === 12 && item.anio === currentData.anio - 1;
+                } else {
+                    return item.mes === currentData.mes - 1 && item.anio === currentData.anio;
+                }
+            });
+            
+            // Datos del mismo mes del año anterior
+            const previousYearData = sortedData.find(item => 
+                item.mes === currentData.mes && item.anio === currentData.anio - 1
+            );
+            
+            // Actualizar tarjeta de margen actual
+            const currentMargin = currentData.diferencia;
+            const currentMarginPercent = (currentData.diferencia / currentData.ventas) * 100;
+            
+            document.getElementById('currentMargin').textContent = formatCLP(currentMargin);
+            document.getElementById('currentMarginPercent').textContent = `${currentMarginPercent.toFixed(2)}%`;
+            document.getElementById('currentMarginPercent').className = currentMarginPercent >= 0 ? 'margin-percent margin-positive' : 'margin-percent margin-negative';
+            
+            // Actualizar variación mes anterior
+            if (previousMonthData) {
+                const previousMargin = previousMonthData.diferencia;
+                const previousMarginPercent = (previousMonthData.diferencia / previousMonthData.ventas) * 100;
+                
+                const monthlyVariation = currentMargin - previousMargin;
+                const monthlyVariationPercent = currentMarginPercent - previousMarginPercent;
+                
+                document.getElementById('monthlyVariation').textContent = formatCLP(monthlyVariation);
+                document.getElementById('monthlyVariationPercent').textContent = `${monthlyVariationPercent.toFixed(2)}%`;
+                document.getElementById('monthlyVariationPercent').className = monthlyVariationPercent >= 0 ? 'margin-percent margin-positive' : 'margin-percent margin-negative';
+                
+                // Actualizar tendencia
+                const trendElement = document.getElementById('monthlyTrend');
+                if (monthlyVariation > 0) {
+                    trendElement.innerHTML = '<i class="fas fa-arrow-up"></i> Incremento';
+                    trendElement.className = 'margin-trend margin-positive';
+                } else if (monthlyVariation < 0) {
+                    trendElement.innerHTML = '<i class="fas fa-arrow-down"></i> Reducción';
+                    trendElement.className = 'margin-trend margin-negative';
+                } else {
+                    trendElement.innerHTML = '<i class="fas fa-minus"></i> Sin cambios';
+                    trendElement.className = 'margin-trend margin-neutral';
+                }
+            } else {
+                document.getElementById('monthlyVariation').textContent = 'N/A';
+                document.getElementById('monthlyVariationPercent').textContent = 'N/A';
+                document.getElementById('monthlyTrend').innerHTML = '<i class="fas fa-minus"></i> Sin datos previos';
+                document.getElementById('monthlyTrend').className = 'margin-trend margin-neutral';
+            }
+            
+            // Actualizar variación anual
+            if (previousYearData) {
+                const yearlyMargin = previousYearData.diferencia;
+                const yearlyMarginPercent = (previousYearData.diferencia / previousYearData.ventas) * 100;
+                
+                const yearlyVariation = currentMargin - yearlyMargin;
+                const yearlyVariationPercent = currentMarginPercent - yearlyMarginPercent;
+                
+                document.getElementById('yearlyVariation').textContent = formatCLP(yearlyVariation);
+                document.getElementById('yearlyVariationPercent').textContent = `${yearlyVariationPercent.toFixed(2)}%`;
+                document.getElementById('yearlyVariationPercent').className = yearlyVariationPercent >= 0 ? 'margin-percent margin-positive' : 'margin-percent margin-negative';
+                
+                // Actualizar tendencia
+                const trendElement = document.getElementById('yearlyTrend');
+                if (yearlyVariation > 0) {
+                    trendElement.innerHTML = '<i class="fas fa-arrow-up"></i> Incremento';
+                    trendElement.className = 'margin-trend margin-positive';
+                } else if (yearlyVariation < 0) {
+                    trendElement.innerHTML = '<i class="fas fa-arrow-down"></i> Reducción';
+                    trendElement.className = 'margin-trend margin-negative';
+                } else {
+                    trendElement.innerHTML = '<i class="fas fa-minus"></i> Sin cambios';
+                    trendElement.className = 'margin-trend margin-neutral';
+                }
+            } else {
+                document.getElementById('yearlyVariation').textContent = 'N/A';
+                document.getElementById('yearlyVariationPercent').textContent = 'N/A';
+                document.getElementById('yearlyTrend').innerHTML = '<i class="fas fa-minus"></i> Sin datos previos';
+                document.getElementById('yearlyTrend').className = 'margin-trend margin-neutral';
+            }
+            
+            // Actualizar gráfico de tendencia de margen
+            updateMarginTrendChart();
+            
+            // Actualizar gráfico de margen porcentual
+            updateMarginPercentChart();
+        }
+        
+        // Función para actualizar el gráfico de tendencia del margen
+        function updateMarginTrendChart() {
+            const ctx = document.getElementById('marginTrendChart').getContext('2d');
+            
+            // Ordenar datos para el gráfico (del más antiguo al más reciente)
+            const chartData = [...filteredData]
+                .sort((a, b) => {
+                    if (a.anio !== b.anio) return a.anio - b.anio;
+                    return a.mes - b.mes;
+                })
+                .slice(-6); // Mostrar los últimos 6 períodos
+            
+            // Preparar datos para el gráfico
+            const labels = chartData.map(item => item.periodo);
+            const marginData = chartData.map(item => item.diferencia);
+            
+            // Calcular tendencia general
+            let trendDescription = 'Sin suficientes datos para análisis de tendencia';
+            if (chartData.length >= 3) {
+                const firstValue = marginData[0];
+                const lastValue = marginData[marginData.length - 1];
+                const changePercent = ((lastValue - firstValue) / Math.abs(firstValue)) * 100;
+                
+                if (changePercent > 5) {
+                    trendDescription = `Tendencia positiva (+${changePercent.toFixed(1)}%) en los últimos ${chartData.length} períodos`;
+                    document.getElementById('trendSummary').className = 'margin-trend-summary margin-positive';
+                } else if (changePercent < -5) {
+                    trendDescription = `Tendencia negativa (${changePercent.toFixed(1)}%) en los últimos ${chartData.length} períodos`;
+                    document.getElementById('trendSummary').className = 'margin-trend-summary margin-negative';
+                } else {
+                    trendDescription = `Tendencia estable (${changePercent.toFixed(1)}%) en los últimos ${chartData.length} períodos`;
+                    document.getElementById('trendSummary').className = 'margin-trend-summary margin-neutral';
+                }
+            }
+            
+            document.getElementById('trendSummary').textContent = trendDescription;
+            
+            // Configuración del gráfico
+            const chartConfig = {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Margen',
+                        data: marginData,
+                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                        borderColor: 'rgb(67, 97, 238)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(33, 37, 41, 0.8)',
+                            titleFont: {
+                                size: 12
+                            },
+                            bodyFont: {
+                                size: 11
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return formatCLP(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        y: {
+                            display: true,
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10
+                                },
+                                callback: function(value) {
+                                    return formatCLPCompact(value);
+                                }
+                            }
+                        }
+                    }
+                }
             };
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('es-CL', options);
-            document.getElementById('lastUpdate').textContent = `Última actualización: ${dateStr}`;
+            
+            // Si ya existe un gráfico, destruirlo
+            if (marginTrendChart) {
+                marginTrendChart.destroy();
+            }
+            
+            // Crear nuevo gráfico
+            marginTrendChart = new Chart(ctx, chartConfig);
+        }
+        
+        // Función para actualizar el gráfico de margen porcentual
+        function updateMarginPercentChart() {
+            const ctx = document.getElementById('marginPercentChart').getContext('2d');
+            
+            // Ordenar datos para el gráfico (del más antiguo al más reciente)
+            const chartData = [...filteredData]
+                .sort((a, b) => {
+                    if (a.anio !== b.anio) return a.anio - b.anio;
+                    return a.mes - b.mes;
+                });
+            
+            // Preparar datos para el gráfico
+            const labels = chartData.map(item => item.periodo);
+            const marginPercentData = chartData.map(item => (item.diferencia / item.ventas) * 100);
+            
+            // Configuración del gráfico
+            const chartConfig = {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Margen %',
+                        data: marginPercentData,
+                        backgroundColor: marginPercentData.map(value => 
+                            value >= 0 ? 'rgba(46, 204, 113, 0.6)' : 'rgba(231, 76, 60, 0.6)'
+                        ),
+                        borderColor: marginPercentData.map(value => 
+                            value >= 0 ? 'rgb(46, 204, 113)' : 'rgb(231, 76, 60)'
+                        ),
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(33, 37, 41, 0.8)',
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.parsed.y.toFixed(2)}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return `${value}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            
+            // Si ya existe un gráfico, destruirlo
+            if (marginPercentChart) {
+                marginPercentChart.destroy();
+            }
+            
+            // Crear nuevo gráfico
+            marginPercentChart = new Chart(ctx, chartConfig);
+        }
+        
+        // Función para actualizar todos los componentes
+        function updateAllComponents() {
+            updateSummaryCards();
+            updateMainChart();
+            updateDataTable();
+            updateLastUpdateTime();
+            updateMarginAnalysis();
         }
         
         // Función para obtener datos desde Power Automate
         async function fetchData() {
-            setLoadingState(true);
+            // Actualizar UI para indicar carga
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
+            chartLoader.style.display = 'flex';
+            mainChartContainer.style.display = 'none';
+            tableLoader.style.display = 'flex';
+            tableContainer.style.display = 'none';
             showError(false);
             
             try {
-                // Crear un objeto con los datos que el flujo de Power Automate espera
-                // Este formato puede necesitar ajustes según la configuración de tu flujo
-                const requestBody = {
-                    // Opción 1: Objeto vacío (algunos flujos no requieren datos)
-                    // No enviar nada
-                };
+                // Crear un objeto con los datos que el flujo espera
+                const requestBody = {};
                 
-                console.log("Enviando solicitud a Power Automate:", dataFlowUrl);
-                console.log("Cuerpo de la solicitud:", JSON.stringify(requestBody));
-                
+                // Realizar solicitud a Power Automate
                 const response = await fetch(dataFlowUrl, {
                     method: 'POST',
                     headers: {
@@ -532,50 +2042,24 @@
                     body: JSON.stringify(requestBody)
                 });
                 
-                console.log("Código de estado:", response.status);
-                console.log("Texto de estado:", response.statusText);
-                
                 if (!response.ok) {
-                    if (response.status === 400) {
-                        // Intenta nuevamente con un formato diferente si el anterior falló
-                        console.log("Reintentando con formato alternativo...");
-                        const alternativeResponse = await fetch(dataFlowUrl, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
-                            // Sin body - algunos endpoints prefieren solicitudes vacías
-                        });
-                        
-                        if (!alternativeResponse.ok) {
-                            throw new Error(`Error ${response.status}: ${response.statusText}`);
-                        }
-                        
-                        return await alternativeResponse.json();
-                    } else {
-                        throw new Error(`Error ${response.status}: ${response.statusText}`);
-                    }
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
                 }
                 
                 const data = await response.json();
-                console.log("Datos recibidos:", data);
                 
-                // Procesar los datos recibidos (ajustar según la estructura real de respuesta)
+                // Procesar datos recibidos
                 if (data) {
                     // Intentar extraer los datos según diferentes formatos posibles
                     let processedData = [];
                     
                     if (Array.isArray(data)) {
-                        // Si la respuesta es directamente un array
                         processedData = data;
                     } else if (data.results && Array.isArray(data.results)) {
-                        // Si la respuesta tiene una propiedad 'results' que es un array
                         processedData = data.results;
                     } else if (data.value && Array.isArray(data.value)) {
-                        // Formato común en APIs de Microsoft
                         processedData = data.value;
                     } else if (data.data && Array.isArray(data.data)) {
-                        // Otro formato común
                         processedData = data.data;
                     } else {
                         // Si ninguno de los anteriores funciona, buscar cualquier array en la respuesta
@@ -588,10 +2072,9 @@
                         }
                     }
                     
-                    // Mapear los datos al formato esperado por nuestro reporte
-                    // Ajustar estas asignaciones según la estructura real de los datos
+                    // Mapear los datos al formato esperado
                     reportData = processedData.map(item => {
-                        // Intenta extraer los valores de diferentes propiedades posibles
+                        // Extraer valores de diferentes propiedades posibles
                         const getValueSafely = (obj, possibleProps, defaultValue) => {
                             for (const prop of possibleProps) {
                                 if (obj[prop] !== undefined) return obj[prop];
@@ -622,79 +2105,37 @@
                         return b.mes - a.mes;
                     });
                     
-                    console.log("Datos procesados:", reportData);
+                    // Inicialmente, los datos filtrados son iguales a los datos completos
+                    filteredData = [...reportData];
                     
-                    // Actualizar componentes
-                    updateTable();
-                    updateSummary();
-                    updateChart();
-                    updateLastUpdateTime();
+                    // Actualizar filtro de años
+                    populateYearFilter();
+                    
+                    // Actualizar todos los componentes
+                    updateAllComponents();
+                    
+                    // Mostrar notificación de éxito
+                    showNotification('success', 'Datos actualizados', 'Los datos se han cargado correctamente.');
                 } else {
                     throw new Error('Formato de datos inválido');
                 }
             } catch (error) {
                 console.error('Error al obtener datos:', error);
                 showError(true, `Error al obtener datos: ${error.message}`);
+                showNotification('error', 'Error', 'No se pudieron cargar los datos.');
                 
-                // Si no hay datos previos, mostrar mensaje
-                if (reportData.length === 0) {
-                    document.getElementById('loadingMessage').textContent = 'No se pudieron cargar los datos. Por favor, intente nuevamente.';
-                }
+                // No se cargan datos de prueba, solo mostramos un mensaje de error
+                showNotification('error', 'Error de conexión', 'No se pudieron obtener datos del servidor. Contacta al administrador del sistema.');
                 
-                // Cargar datos de prueba para desarrollo local
-                if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                    console.log("Cargando datos de prueba para desarrollo local...");
-                    reportData = [
-                        { anio: 2025, mes: 4, periodo: 'Abril 2025', ventas: 14500000, compras: 9800000, diferencia: 4700000 },
-                        { anio: 2025, mes: 3, periodo: 'Marzo 2025', ventas: 15200000, compras: 10500000, diferencia: 4700000 },
-                        { anio: 2025, mes: 2, periodo: 'Febrero 2025', ventas: 13200000, compras: 9200000, diferencia: 4000000 },
-                        { anio: 2025, mes: 1, periodo: 'Enero 2025', ventas: 12800000, compras: 9500000, diferencia: 3300000 },
-                        { anio: 2024, mes: 12, periodo: 'Diciembre 2024', ventas: 16500000, compras: 11200000, diferencia: 5300000 },
-                        { anio: 2024, mes: 11, periodo: 'Noviembre 2024', ventas: 14800000, compras: 10300000, diferencia: 4500000 }
-                    ];
-                    updateTable();
-                    updateSummary();
-                    updateChart();
-                    
-                    // Mostrar notificación amigable
-                    showError(true, "Usando datos de prueba para desarrollo local. En producción, conecte a Power Automate.");
-                }
+                // Mostrar mensaje en la interfaz para indicar que no hay datos
+                document.getElementById('chartLoader').innerHTML = '<div style="text-align: center; width: 100%;"><i class="fas fa-exclamation-triangle" style="font-size: 32px; color: #ddd; margin-bottom: 15px;"></i><p>No se pudieron cargar los datos. Intente nuevamente más tarde.</p></div>';
+                document.getElementById('tableLoader').innerHTML = '<div style="text-align: center; width: 100%;"><i class="fas fa-exclamation-triangle" style="font-size: 32px; color: #ddd; margin-bottom: 15px;"></i><p>No se pudieron cargar los datos. Intente nuevamente más tarde.</p></div>';
             } finally {
-                setLoadingState(false);
+                // Restaurar interfaz
+                refreshBtn.disabled = false;
+                refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar Datos';
             }
         }
-        
-        // Función eliminada: Enviar reporte a Power Automate
-        
-        // Mostrar fecha de generación del reporte
-        function showReportDate() {
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const dateStr = new Date().toLocaleDateString('es-CL', options);
-            document.getElementById('reportDate').textContent = `Generado el ${dateStr}`;
-        }
-        
-        // Inicializar la página
-        document.addEventListener('DOMContentLoaded', () => {
-            showReportDate();
-            
-            // Datos de prueba para visualización inicial (opcional, eliminar en producción)
-            /*
-            reportData = [
-                { anio: 2025, mes: 4, periodo: 'Abril 2025', ventas: 14500000, compras: 9800000, diferencia: 4700000 },
-                { anio: 2025, mes: 3, periodo: 'Marzo 2025', ventas: 15200000, compras: 10500000, diferencia: 4700000 },
-                { anio: 2025, mes: 2, periodo: 'Febrero 2025', ventas: 13200000, compras: 9200000, diferencia: 4000000 },
-                { anio: 2025, mes: 1, periodo: 'Enero 2025', ventas: 12800000, compras: 9500000, diferencia: 3300000 },
-                { anio: 2024, mes: 12, periodo: 'Diciembre 2024', ventas: 16500000, compras: 11200000, diferencia: 5300000 },
-                { anio: 2024, mes: 11, periodo: 'Noviembre 2024', ventas: 14800000, compras: 10300000, diferencia: 4500000 }
-            ];
-            updateTable();
-            updateSummary();
-            updateChart();
-            */
-            
-            // Cargar datos automáticamente al inicio (opcional)
-            // fetchData();
-        });
     </script>
 </body>
 </html>
