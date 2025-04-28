@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Gestión - Ventas y Compras</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            background-color: white;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            position: relative;
+        }
+        h1 {
+            color: #2c3e50;
+            margin: 0 0 10px 0;
+            font-weight: 600;
+        }
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        .refresh-container {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+        .btn-refresh {
+            background-color: #3498db;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        .btn-refresh:hover {
+            background-color: #2980b9;
+        }
+        .btn-refresh i {
+            margin-right: 8px;
+        }
+        .btn-refresh:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: right;
+        }
+        th {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .chart-container {
+            height: 400px;
+            margin-bottom: 30px;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .summary {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .summary h2 {
+            margin-top: 0;
+            font-size: 20px;
+            color: #2c3e50;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e7e7e7;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 8px 10px;
+            background-color: #fff;
+            border-radius: 4px;
+        }
+        .summary-item:last-child {
+            margin-bottom: 0;
+            font-weight: bold;
+        }
+        .positive { color: #27ae60; font-weight: bold; }
+        .negative { color: #e74c3c; font-weight: bold; }
+        .btn-container {
+            text-align: center;
+            margin-top: 25px;
+        }
+        .btn-action {
+            background-color: #2ecc71;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn-action:hover {
+            background-color: #27ae60;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+        .error-message {
+            background-color: #fee;
+            color: #e74c3c;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+        .last-update {
+            font-size: 13px;
+            color: #7f8c8d;
+            text-align: center;
+            margin-top: 5px;
+        }
+        /* Estilos responsivos */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 10px;
+            }
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+            .btn-refresh {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            .chart-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Reporte de Gestión - Ventas y Compras</h1>
+            <div class="subtitle">Libros Electrónicos de Chile</div>
+            <div id="reportDate" class="subtitle"></div>
+            <div class="refresh-container">
+                <button id="btnRefresh" class="btn-refresh" onclick="fetchData()">
+                    <div id="refreshSpinner" class="spinner" style="display: none;"></div>
+                    <span id="refreshText">Actualizar datos</span>
+                </button>
+            </div>
+            <div class="last-update" id="lastUpdate">Sin datos cargados</div>
+        </div>
+        
+        <div id="errorMessage" class="error-message">
+            Error al cargar los datos. Por favor intente nuevamente.
+        </div>
+        
+        <div class="summary">
+            <h2>Resumen</h2>
+            <div class="summary-item">
+                <span>Total Ventas (Año actual):</span>
+                <span id="totalVentas" class="positive">$0</span>
+            </div>
+            <div class="summary-item">
+                <span>Total Compras (Año actual):</span>
+                <span id="totalCompras">$0</span>
+            </div>
+            <div class="summary-item">
+                <span>Diferencia Total:</span>
+                <span id="totalDiferencia">$0</span>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="reportChart"></canvas>
+        </div>
+        
+        <div id="tableContainer">
+            <div id="loadingMessage" class="loading">Aún no hay datos cargados. Haga clic en "Actualizar datos" para obtener la información más reciente.</div>
+            <table id="reportTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Período</th>
+                        <th>Ventas</th>
+                        <th>Compras</th>
+                        <th>Diferencia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Aquí se insertarán dinámicamente las filas de datos -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="footer">
+            <p></p>
+        </div>
+    </div>
+
+    <script>
+        // Variable global para almacenar los datos del reporte
+        let reportData = [];
+        let reportChart = null;
+        
+        // URL del flujo de Power Automate para obtener datos
+        const dataFlowUrl = "https://prod-39.westus.logic.azure.com:443/workflows/b97c2b90113d49d7a0bf01071e32bff9/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=uP10-qTeIrV-oY3zwbjHvKWOwY815dBaw7Jh6yE9jNg";
+        
+        // URL del flujo de Power Automate para obtener datos
+        // Ya se define arriba
+        
+        // Función para formatear moneda CLP
+        function formatCLP(num) {
+            return new Intl.NumberFormat('es-CL', {
+                style: 'currency',
+                currency: 'CLP',
+                minimumFractionDigits: 0
+            }).format(num);
+        }
+        
+        // Función para formatear moneda CLP compacta (para el gráfico)
+        function formatCLPCompact(num) {
+            return new Intl.NumberFormat('es-CL', {
+                style: 'currency',
+                currency: 'CLP',
+                notation: 'compact',
+                compactDisplay: 'short',
+                minimumFractionDigits: 0
+            }).format(num);
+        }
+        
+        // Función para actualizar la tabla con datos
+        function updateTable() {
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = '';
+            
+            if (reportData.length === 0) {
+                document.getElementById('loadingMessage').style.display = 'block';
+                document.getElementById('reportTable').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('reportTable').style.display = 'table';
+            
+            reportData.forEach(row => {
+                const tr = document.createElement('tr');
+                
+                // Crear celdas
+                tr.innerHTML = `
+                    <td>${row.periodo}</td>
+                    <td>${formatCLP(row.ventas)}</td>
+                    <td>${formatCLP(row.compras)}</td>
+                    <td class="${row.diferencia >= 0 ? 'positive' : 'negative'}">${formatCLP(row.diferencia)}</td>
+                `;
+                
+                tableBody.appendChild(tr);
+            });
+        }
+        
+        // Función para actualizar el resumen
+        function updateSummary() {
+            if (reportData.length === 0) {
+                document.getElementById('totalVentas').textContent = formatCLP(0);
+                document.getElementById('totalCompras').textContent = formatCLP(0);
+                document.getElementById('totalDiferencia').textContent = formatCLP(0);
+                return;
+            }
+            
+            const currentYear = new Date().getFullYear();
+            
+            // Filtrar datos del año actual
+            const currentYearData = reportData.filter(item => item.anio === currentYear);
+            
+            // Calcular totales
+            const totalVentas = currentYearData.reduce((sum, item) => sum + item.ventas, 0);
+            const totalCompras = currentYearData.reduce((sum, item) => sum + item.compras, 0);
+            const totalDiferencia = totalVentas - totalCompras;
+            
+            // Actualizar elementos HTML
+            document.getElementById('totalVentas').textContent = formatCLP(totalVentas);
+            document.getElementById('totalCompras').textContent = formatCLP(totalCompras);
+            
+            const diferenciaElement = document.getElementById('totalDiferencia');
+            diferenciaElement.textContent = formatCLP(totalDiferencia);
+            diferenciaElement.className = totalDiferencia >= 0 ? 'positive' : 'negative';
+        }
+        
+        // Función para actualizar o crear el gráfico
+        function updateChart() {
+            const ctx = document.getElementById('reportChart').getContext('2d');
+            
+            if (reportData.length === 0) {
+                if (reportChart) {
+                    reportChart.destroy();
+                    reportChart = null;
+                }
+                return;
+            }
+            
+            // Revertir el orden para mostrar los meses en orden cronológico
+            const chartData = [...reportData].reverse();
+            
+            // Preparar datos para el gráfico
+            const labels = chartData.map(item => item.periodo);
+            const ventasData = chartData.map(item => item.ventas);
+            const comprasData = chartData.map(item => item.compras);
+            const diferenciaData = chartData.map(item => item.diferencia);
+            
+            const chartConfig = {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Ventas',
+                            data: ventasData,
+                            backgroundColor: 'rgba(52, 152, 219, 0.6)',
+                            borderColor: 'rgb(52, 152, 219)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Compras',
+                            data: comprasData,
+                            backgroundColor: 'rgba(231, 76, 60, 0.6)',
+                            borderColor: 'rgb(231, 76, 60)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Diferencia',
+                            type: 'line',
+                            data: diferenciaData,
+                            backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                            borderColor: 'rgb(46, 204, 113)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Evolución Mensual de Ventas y Compras',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        legend: {
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += formatCLP(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCLPCompact(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            
+            // Si ya existe un gráfico, destruirlo
+            if (reportChart) {
+                reportChart.destroy();
+            }
+            
+            // Crear nuevo gráfico
+            reportChart = new Chart(ctx, chartConfig);
+        }
+        
+        // Función para mostrar el estado de carga
+        function setLoadingState(isLoading) {
+            const refreshButton = document.getElementById('btnRefresh');
+            const refreshSpinner = document.getElementById('refreshSpinner');
+            const refreshText = document.getElementById('refreshText');
+            
+            refreshButton.disabled = isLoading;
+            
+            if (isLoading) {
+                refreshSpinner.style.display = 'inline-block';
+                refreshText.textContent = 'Cargando...';
+            } else {
+                refreshSpinner.style.display = 'none';
+                refreshText.textContent = 'Actualizar datos';
+            }
+        }
+        
+        // Función para mostrar mensajes de error
+        function showError(show, message = 'Error al cargar los datos. Por favor intente nuevamente.') {
+            const errorElement = document.getElementById('errorMessage');
+            
+            if (show) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+                
+                // Ocultar mensaje después de 5 segundos
+                setTimeout(() => {
+                    errorElement.style.display = 'none';
+                }, 5000);
+            } else {
+                errorElement.style.display = 'none';
+            }
+        }
+        
+        // Función para actualizar la hora de última actualización
+        function updateLastUpdateTime() {
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            };
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('es-CL', options);
+            document.getElementById('lastUpdate').textContent = `Última actualización: ${dateStr}`;
+        }
+        
+        // Función para obtener datos desde Power Automate
+        async function fetchData() {
+            setLoadingState(true);
+            showError(false);
+            
+            try {
+                // Crear un objeto con los datos que el flujo de Power Automate espera
+                // Este formato puede necesitar ajustes según la configuración de tu flujo
+                const requestBody = {
+                    // Opción 1: Objeto vacío (algunos flujos no requieren datos)
+                    // No enviar nada
+                };
+                
+                console.log("Enviando solicitud a Power Automate:", dataFlowUrl);
+                console.log("Cuerpo de la solicitud:", JSON.stringify(requestBody));
+                
+                const response = await fetch(dataFlowUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                console.log("Código de estado:", response.status);
+                console.log("Texto de estado:", response.statusText);
+                
+                if (!response.ok) {
+                    if (response.status === 400) {
+                        // Intenta nuevamente con un formato diferente si el anterior falló
+                        console.log("Reintentando con formato alternativo...");
+                        const alternativeResponse = await fetch(dataFlowUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                            // Sin body - algunos endpoints prefieren solicitudes vacías
+                        });
+                        
+                        if (!alternativeResponse.ok) {
+                            throw new Error(`Error ${response.status}: ${response.statusText}`);
+                        }
+                        
+                        return await alternativeResponse.json();
+                    } else {
+                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    }
+                }
+                
+                const data = await response.json();
+                console.log("Datos recibidos:", data);
+                
+                // Procesar los datos recibidos (ajustar según la estructura real de respuesta)
+                if (data) {
+                    // Intentar extraer los datos según diferentes formatos posibles
+                    let processedData = [];
+                    
+                    if (Array.isArray(data)) {
+                        // Si la respuesta es directamente un array
+                        processedData = data;
+                    } else if (data.results && Array.isArray(data.results)) {
+                        // Si la respuesta tiene una propiedad 'results' que es un array
+                        processedData = data.results;
+                    } else if (data.value && Array.isArray(data.value)) {
+                        // Formato común en APIs de Microsoft
+                        processedData = data.value;
+                    } else if (data.data && Array.isArray(data.data)) {
+                        // Otro formato común
+                        processedData = data.data;
+                    } else {
+                        // Si ninguno de los anteriores funciona, buscar cualquier array en la respuesta
+                        const arrayProps = Object.keys(data).find(key => Array.isArray(data[key]));
+                        if (arrayProps) {
+                            processedData = data[arrayProps];
+                        } else {
+                            // Si todo falla, convertir a array si es un objeto
+                            processedData = [data];
+                        }
+                    }
+                    
+                    // Mapear los datos al formato esperado por nuestro reporte
+                    // Ajustar estas asignaciones según la estructura real de los datos
+                    reportData = processedData.map(item => {
+                        // Intenta extraer los valores de diferentes propiedades posibles
+                        const getValueSafely = (obj, possibleProps, defaultValue) => {
+                            for (const prop of possibleProps) {
+                                if (obj[prop] !== undefined) return obj[prop];
+                            }
+                            return defaultValue;
+                        };
+                        
+                        const anio = getValueSafely(item, ['Anio', 'anio', 'year', 'Year', 'año'], new Date().getFullYear());
+                        const mes = getValueSafely(item, ['Mes', 'mes', 'month', 'Month'], new Date().getMonth() + 1);
+                        const periodo = getValueSafely(item, ['Periodo', 'periodo', 'period', 'Period'], `${mes}/${anio}`);
+                        const ventas = getValueSafely(item, ['TotalVentas', 'Ventas', 'ventas', 'totalVentas', 'sales', 'Sales'], 0);
+                        const compras = getValueSafely(item, ['TotalCompras', 'Compras', 'compras', 'totalCompras', 'purchases', 'Purchases'], 0);
+                        const diferencia = getValueSafely(item, ['Diferencia', 'diferencia', 'difference', 'Difference'], ventas - compras);
+                        
+                        return {
+                            anio: typeof anio === 'number' ? anio : parseInt(anio, 10),
+                            mes: typeof mes === 'number' ? mes : parseInt(mes, 10),
+                            periodo: periodo,
+                            ventas: typeof ventas === 'number' ? ventas : parseFloat(ventas) || 0,
+                            compras: typeof compras === 'number' ? compras : parseFloat(compras) || 0,
+                            diferencia: typeof diferencia === 'number' ? diferencia : parseFloat(diferencia) || 0
+                        };
+                    });
+                    
+                    // Ordenar por año y mes (más reciente primero)
+                    reportData.sort((a, b) => {
+                        if (a.anio !== b.anio) return b.anio - a.anio;
+                        return b.mes - a.mes;
+                    });
+                    
+                    console.log("Datos procesados:", reportData);
+                    
+                    // Actualizar componentes
+                    updateTable();
+                    updateSummary();
+                    updateChart();
+                    updateLastUpdateTime();
+                } else {
+                    throw new Error('Formato de datos inválido');
+                }
+            } catch (error) {
+                console.error('Error al obtener datos:', error);
+                showError(true, `Error al obtener datos: ${error.message}`);
+                
+                // Si no hay datos previos, mostrar mensaje
+                if (reportData.length === 0) {
+                    document.getElementById('loadingMessage').textContent = 'No se pudieron cargar los datos. Por favor, intente nuevamente.';
+                }
+                
+                // Cargar datos de prueba para desarrollo local
+                if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    console.log("Cargando datos de prueba para desarrollo local...");
+                    reportData = [
+                        { anio: 2025, mes: 4, periodo: 'Abril 2025', ventas: 14500000, compras: 9800000, diferencia: 4700000 },
+                        { anio: 2025, mes: 3, periodo: 'Marzo 2025', ventas: 15200000, compras: 10500000, diferencia: 4700000 },
+                        { anio: 2025, mes: 2, periodo: 'Febrero 2025', ventas: 13200000, compras: 9200000, diferencia: 4000000 },
+                        { anio: 2025, mes: 1, periodo: 'Enero 2025', ventas: 12800000, compras: 9500000, diferencia: 3300000 },
+                        { anio: 2024, mes: 12, periodo: 'Diciembre 2024', ventas: 16500000, compras: 11200000, diferencia: 5300000 },
+                        { anio: 2024, mes: 11, periodo: 'Noviembre 2024', ventas: 14800000, compras: 10300000, diferencia: 4500000 }
+                    ];
+                    updateTable();
+                    updateSummary();
+                    updateChart();
+                    
+                    // Mostrar notificación amigable
+                    showError(true, "Usando datos de prueba para desarrollo local. En producción, conecte a Power Automate.");
+                }
+            } finally {
+                setLoadingState(false);
+            }
+        }
+        
+        // Función eliminada: Enviar reporte a Power Automate
+        
+        // Mostrar fecha de generación del reporte
+        function showReportDate() {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateStr = new Date().toLocaleDateString('es-CL', options);
+            document.getElementById('reportDate').textContent = `Generado el ${dateStr}`;
+        }
+        
+        // Inicializar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            showReportDate();
+            
+            // Datos de prueba para visualización inicial (opcional, eliminar en producción)
+            /*
+            reportData = [
+                { anio: 2025, mes: 4, periodo: 'Abril 2025', ventas: 14500000, compras: 9800000, diferencia: 4700000 },
+                { anio: 2025, mes: 3, periodo: 'Marzo 2025', ventas: 15200000, compras: 10500000, diferencia: 4700000 },
+                { anio: 2025, mes: 2, periodo: 'Febrero 2025', ventas: 13200000, compras: 9200000, diferencia: 4000000 },
+                { anio: 2025, mes: 1, periodo: 'Enero 2025', ventas: 12800000, compras: 9500000, diferencia: 3300000 },
+                { anio: 2024, mes: 12, periodo: 'Diciembre 2024', ventas: 16500000, compras: 11200000, diferencia: 5300000 },
+                { anio: 2024, mes: 11, periodo: 'Noviembre 2024', ventas: 14800000, compras: 10300000, diferencia: 4500000 }
+            ];
+            updateTable();
+            updateSummary();
+            updateChart();
+            */
+            
+            // Cargar datos automáticamente al inicio (opcional)
+            // fetchData();
+        });
+    </script>
+</body>
+</html>
