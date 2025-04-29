@@ -421,6 +421,43 @@
             color: var(--text-secondary);
         }
 
+        /* Estilos para el contenedor de iframe */
+        .iframe-container {
+            display: none;
+            width: 100%;
+            height: calc(100vh - 150px);
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .back-button {
+            margin-bottom: 20px;
+            display: none;
+            padding: 10px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+        }
+
+        .back-button:hover {
+            background-color: var(--primary-dark);
+        }
+
         /* Responsive styles */
         @media (max-width: 768px) {
             .dashboard-title {
@@ -501,62 +538,73 @@
         </header>
 
         <main class="main-content">
-            <section class="welcome-section">
-                <h1 class="welcome-title">Panel de Control</h1>
-                <p class="welcome-description">
-                    Bienvenido al sistema centralizado de dashboards analíticos. 
-                    Seleccione uno de los paneles a continuación para acceder a información detallada.
-                </p>
-            </section>
+            <button id="back-button" class="back-button">
+                <i class="fas fa-arrow-left"></i> Volver al portal
+            </button>
+            
+            <div id="dashboard-content">
+                <section class="welcome-section">
+                    <h1 class="welcome-title">Panel de Control</h1>
+                    <p class="welcome-description">
+                        Bienvenido al sistema centralizado de dashboards analíticos. 
+                        Seleccione uno de los paneles a continuación para acceder a información detallada.
+                    </p>
+                </section>
 
-            <div class="dashboards-grid">
-                <!-- Dashboard de Ventas -->
-                <div class="dashboard-card">
-                    <div class="dashboard-image ventas">
-                        <i class="fas fa-chart-line dashboard-icon"></i>
+                <div class="dashboards-grid">
+                    <!-- Dashboard de Ventas -->
+                    <div class="dashboard-card">
+                        <div class="dashboard-image ventas">
+                            <i class="fas fa-chart-line dashboard-icon"></i>
+                        </div>
+                        <div class="dashboard-content">
+                            <h3 class="dashboard-title">Dashboard de Ventas</h3>
+                            <p class="dashboard-description">
+                                Analice los datos de ventas, tendencias y métricas clave para optimizar su estrategia comercial.
+                            </p>
+                            <a href="FVentas-M.html" class="dashboard-btn" data-dashboard="ventas">
+                                <i class="fas fa-external-link-alt"></i> Acceder
+                            </a>
+                        </div>
                     </div>
-                    <div class="dashboard-content">
-                        <h3 class="dashboard-title">Dashboard de Ventas</h3>
-                        <p class="dashboard-description">
-                            Analice los datos de ventas, tendencias y métricas clave para optimizar su estrategia comercial.
-                        </p>
-                        <a href="FVentas-M.html" class="dashboard-btn" target="_blank">
-                            <i class="fas fa-external-link-alt"></i> Acceder
-                        </a>
+
+                    <!-- Dashboard de Compras -->
+                    <div class="dashboard-card">
+                        <div class="dashboard-image compras">
+                            <i class="fas fa-shopping-cart dashboard-icon"></i>
+                        </div>
+                        <div class="dashboard-content">
+                            <h3 class="dashboard-title">Dashboard de Compras</h3>
+                            <p class="dashboard-description">
+                                Visualice información detallada sobre sus compras, proveedores y gastos para una mejor gestión.
+                            </p>
+                            <a href="comprasmi.html" class="dashboard-btn" data-dashboard="compras">
+                                <i class="fas fa-external-link-alt"></i> Acceder
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard Financiero -->
+                    <div class="dashboard-card">
+                        <div class="dashboard-image financial">
+                            <i class="fas fa-chart-pie dashboard-icon"></i>
+                        </div>
+                        <div class="dashboard-content">
+                            <h3 class="dashboard-title">Dashboard Financiero</h3>
+                            <p class="dashboard-description">
+                                Obtenga una visión integral de las finanzas de su empresa con análisis comparativos de ventas y compras.
+                            </p>
+                            <a href="Final-compra-y-ventas.html" class="dashboard-btn" data-dashboard="financiero">
+                                <i class="fas fa-external-link-alt"></i> Acceder
+                            </a>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Dashboard de Compras -->
-                <div class="dashboard-card">
-                    <div class="dashboard-image compras">
-                        <i class="fas fa-shopping-cart dashboard-icon"></i>
-                    </div>
-                    <div class="dashboard-content">
-                        <h3 class="dashboard-title">Dashboard de Compras</h3>
-                        <p class="dashboard-description">
-                            Visualice información detallada sobre sus compras, proveedores y gastos para una mejor gestión.
-                        </p>
-                        <a href="comprasmi.html" class="dashboard-btn" target="_blank">
-                            <i class="fas fa-external-link-alt"></i> Acceder
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Dashboard Financiero -->
-                <div class="dashboard-card">
-                    <div class="dashboard-image financial">
-                        <i class="fas fa-chart-pie dashboard-icon"></i>
-                    </div>
-                    <div class="dashboard-content">
-                        <h3 class="dashboard-title">Dashboard Financiero</h3>
-                        <p class="dashboard-description">
-                            Obtenga una visión integral de las finanzas de su empresa con análisis comparativos de ventas y compras.
-                        </p>
-                        <a href="Final-compra-y-ventas.html" class="dashboard-btn" target="_blank">
-                            <i class="fas fa-external-link-alt"></i> Acceder
-                        </a>
-                    </div>
-                </div>
+            </div>
+            
+            <!-- Contenedor para iframe -->
+            <div id="iframe-container" class="iframe-container">
+                <iframe id="dashboard-iframe" src=""></iframe>
             </div>
         </main>
 
@@ -588,6 +636,10 @@
         const notificationIcon = document.getElementById('notification-icon');
         const notificationTitle = document.getElementById('notification-title');
         const notificationMessage = document.getElementById('notification-message');
+        const dashboardContent = document.getElementById('dashboard-content');
+        const iframeContainer = document.getElementById('iframe-container');
+        const dashboardIframe = document.getElementById('dashboard-iframe');
+        const backButton = document.getElementById('back-button');
 
         // Credenciales
         const validCredentials = {
@@ -609,9 +661,9 @@
                 userDisplay.textContent = usernameValue;
                 loginError.style.display = 'none';
                 
-                // Guardar en localStorage para mantener la sesión
-                localStorage.setItem('loggedIn', 'true');
-                localStorage.setItem('username', usernameValue);
+                // Guardar en sessionStorage para mantener la sesión solo hasta que se cierre la ventana
+                sessionStorage.setItem('loggedIn', 'true');
+                sessionStorage.setItem('username', usernameValue);
                 
                 // Mostrar notificación
                 showNotification('success', 'Inicio de sesión exitoso', 'Bienvenido al portal de dashboards.');
@@ -628,8 +680,8 @@
         // Función de logout
         logoutBtn.addEventListener('click', function() {
             // Cerrar sesión
-            localStorage.removeItem('loggedIn');
-            localStorage.removeItem('username');
+            sessionStorage.removeItem('loggedIn');
+            sessionStorage.removeItem('username');
             
             // Redirigir a login
             loginSection.style.display = 'flex';
@@ -638,6 +690,11 @@
             // Limpiar formulario
             username.value = '';
             password.value = '';
+            
+            // Resetear vista
+            dashboardContent.style.display = 'block';
+            iframeContainer.style.display = 'none';
+            backButton.style.display = 'none';
             
             // Mostrar notificación
             showNotification('success', 'Sesión cerrada', 'Ha cerrado sesión correctamente.');
@@ -665,10 +722,10 @@
             }, 4000);
         }
 
-        // Verificar si ya hay una sesión activa
+        // Verificar si hay una sesión activa cuando se carga la página
         document.addEventListener('DOMContentLoaded', function() {
-            const isLoggedIn = localStorage.getItem('loggedIn') === 'true';
-            const savedUsername = localStorage.getItem('username');
+            const isLoggedIn = sessionStorage.getItem('loggedIn') === 'true';
+            const savedUsername = sessionStorage.getItem('username');
             
             if (isLoggedIn && savedUsername) {
                 loginSection.style.display = 'none';
@@ -677,14 +734,44 @@
             }
         });
 
-        // Redireccionamiento a dashboards 
+        // Escuchar el evento beforeunload para asegurar que se cierre la sesión al cerrar la página
+        window.addEventListener('beforeunload', function() {
+            // No es necesario hacer nada específico aquí, ya que sessionStorage se borra automáticamente
+            // al cerrar la ventana/pestaña del navegador
+        });
+
+        // Manejar los enlaces a dashboards para cargarlos en iframe
         document.querySelectorAll('.dashboard-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
-                // Aquí podríamos agregar lógica adicional antes de abrir el dashboard
-                // Por ejemplo, registrar qué dashboard se está abriendo
+                e.preventDefault();
+                
+                const href = this.getAttribute('href');
                 const dashboardName = this.closest('.dashboard-card').querySelector('.dashboard-title').textContent;
+                
+                // Cargar en iframe
+                dashboardIframe.src = href;
+                
+                // Ocultar contenido del dashboard principal y mostrar iframe
+                dashboardContent.style.display = 'none';
+                iframeContainer.style.display = 'block';
+                backButton.style.display = 'flex';
+                
                 console.log(`Abriendo dashboard: ${dashboardName}`);
+                
+                // Mostrar notificación
+                showNotification('success', 'Dashboard cargado', `Visualizando: ${dashboardName}`);
             });
+        });
+
+        // Botón para volver al portal principal
+        backButton.addEventListener('click', function() {
+            // Mostrar contenido del dashboard principal y ocultar iframe
+            dashboardContent.style.display = 'block';
+            iframeContainer.style.display = 'none';
+            backButton.style.display = 'none';
+            
+            // Limpiar iframe
+            dashboardIframe.src = '';
         });
     </script>
 </body>
