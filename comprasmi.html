@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Analítico de Compras</title>
+    <!-- El nombre del archivo debe coincidir con el enlace en portal-principal.html: comprasmi.html -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
@@ -54,103 +55,34 @@
             line-height: 1.6;
         }
 
-        .login-container {
-            max-width: 450px;
-            margin: 100px auto;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: var(--shadow);
-            padding: 30px;
-            transition: var(--transition);
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .login-logo {
-            text-align: center;
-            margin-bottom: 20px;
-            color: var(--primary);
-        }
-        
-        .login-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .login-header h2 {
-            font-size: 24px;
-            color: var(--dark);
-            margin-bottom: 8px;
-        }
-        
-        .login-header p {
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 12px 15px;
-            font-size: 15px;
-            border: 1px solid var(--gray);
-            border-radius: 6px;
-            transition: var(--transition);
-        }
-        
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
-        }
-        
-        .btn {
-            display: inline-block;
-            font-weight: 500;
-            text-align: center;
-            padding: 12px 20px;
-            font-size: 16px;
-            border-radius: .5rem;
-            border: none;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        
-        .btn-primary {
+        /* Botón para volver al portal principal */
+        .back-to-portal {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
             background-color: var(--primary);
             color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            z-index: 1000;
+            transition: var(--transition);
         }
         
-        .btn-primary:hover {
+        .back-to-portal:hover {
             background-color: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
         }
         
-        .btn-block {
-            display: block;
-            width: 100%;
-        }
-        
-        .login-error {
-            color: var(--danger);
-            margin-top: 15px;
-            font-size: 14px;
-            text-align: center;
-            font-weight: 500;
+        .back-to-portal i {
+            font-size: 24px;
         }
 
         .hidden {
@@ -786,38 +718,52 @@
                 min-width: 100%;
             }
         }
+
+        .btn {
+            display: inline-block;
+            font-weight: 500;
+            text-align: center;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius:.5rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .login-error {
+            color: var(--danger);
+            margin-top: 15px;
+            font-size: 14px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
-    <!-- Sección de Login -->
-    <div id="login-section">
-        <div class="login-container">
-            <div class="login-logo">
-                <i class="fas fa-shopping-cart fa-3x"></i>
-            </div>
-            <div class="login-header">
-                <h2>Sistema Analítico de Compras</h2>
-                <p>Analice sus datos de compras con precisión</p>
-            </div>
-            <form id="login-form">
-                <div class="form-group">
-                    <label for="username">Usuario</label>
-                    <input type="text" id="username" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Contraseña</label>
-                    <input type="password" id="password" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn-primary btn-block">
-                    <i class="fas fa-sign-in-alt"></i> Ingresar al Sistema
-                </button>
-                <div id="login-error" class="login-error"></div>
-            </form>
-        </div>
-    </div>
+    <!-- Botón para volver al portal principal -->
+    <a href="index.html" class="back-to-portal" title="Volver al Portal Principal">
+        <i class="fas fa-home"></i>
+    </a>
 
-    <!-- Dashboard Principal -->
-    <div id="main-content" class="hidden">
+    <!-- Dashboard Principal (mostrado directamente) -->
+    <div id="main-content">
         <div class="dashboard">
             <div class="dashboard-header">
                 <h1 class="dashboard-title"><i class="fas fa-chart-line"></i> Dashboard de Compras</h1>
@@ -1055,10 +1001,7 @@
 
 <script>
 // Variables globales
-const loginSection = document.getElementById('login-section');
 const mainContent = document.getElementById('main-content');
-const loginForm = document.getElementById('login-form');
-const loginError = document.getElementById('login-error');
 const loadButton = document.getElementById('load-button');
 const loadingMessage = document.getElementById('loading-message');
 const errorMessage = document.getElementById('error-message');
@@ -1160,32 +1103,6 @@ function initializeSelect2() {
         closeOnSelect: false
     });
 }
-
-// Manejo de login
-loginForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    
-    if (username === 'prueba' && password === '123#') {
-        // Login exitoso
-        loginSection.classList.add('hidden');
-        mainContent.classList.remove('hidden');
-        
-        // Inicializar Select2
-        initializeSelect2();
-        
-        // Cargar datos automáticamente al ingresar
-        fetchData();
-    } else {
-        // Error de login
-        loginError.textContent = 'Usuario o contraseña incorrectos';
-        loginError.style.animation = 'none';
-        setTimeout(() => {
-            loginError.style.animation = 'fadeIn 0.3s ease';
-        }, 10);
-    }
-});
 
 // Evento para botón de carga
 loadButton.addEventListener('click', fetchData);
@@ -2356,6 +2273,16 @@ function updateKeyMetrics() {
 // Inicializar encabezados de tabla ordenables
 document.addEventListener('DOMContentLoaded', function() {
     updateSortIcons();
+    // Inicializar Select2 para los filtros al cargar la página
+    initializeSelect2();
+    // Cargar datos automáticamente al iniciar
+    fetchData();
+    
+    // Verificar si venimos de una sesión iniciada
+    if (!localStorage.getItem('loggedIn')) {
+        // Si no hay sesión, redirigir al portal principal
+        window.location.href = 'index.html';
+    }
 });
 </script>
 </body>
