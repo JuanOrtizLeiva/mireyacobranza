@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Financiero - Ventas y Compras</title>
+    <!-- Actualiza el nombre del archivo para que coincida con el enlace en portal-principal.html -->
+    <!-- Nombre actual: Final compra y ventas.html -->
+    <!-- Nombre referido en el portal: Final-compra-y-ventas.html -->
     <!-- Chart.js para gráficos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <!-- Font Awesome para iconos -->
@@ -39,114 +42,37 @@
             line-height: 1.6;
         }
         
-        /* PANTALLA DE LOGIN */
-        .login-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            padding: 20px;
-        }
-        
-        .login-card {
-            width: 100%;
-            max-width: 400px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            padding: 30px;
-            text-align: center;
-            animation: fadeIn 1s;
-        }
-        
-        .login-logo {
-            margin-bottom: 30px;
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--primary);
-        }
-        
-        .login-logo i {
-            margin-right: 10px;
-            color: var(--primary);
-        }
-        
-        .login-form {
-            margin-top: 20px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--gray);
-        }
-        
-        .form-input {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        
-        .form-input i {
-            position: absolute;
-            left: 12px;
-            color: var(--gray);
-        }
-        
-        .form-input input {
-            width: 100%;
-            padding: 12px 12px 12px 40px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-            transition: var(--transition);
-        }
-        
-        .form-input input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
-        }
-        
-        .login-btn {
-            width: 100%;
-            padding: 14px;
-            background: var(--primary);
+        /* Botón para volver al portal principal */
+        .back-to-portal {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--primary);
             color: white;
             border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             cursor: pointer;
+            z-index: 1000;
             transition: var(--transition);
-            margin-top: 10px;
         }
         
-        .login-btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
+        .back-to-portal:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
         }
         
-        .login-error {
-            color: var(--danger);
-            margin-top: 15px;
-            font-size: 14px;
-            display: none;
+        .back-to-portal i {
+            font-size: 24px;
         }
         
         /* DASHBOARD PRINCIPAL */
-        .dashboard {
-            display: none; /* Inicialmente oculto hasta login */
-        }
-        
         .dashboard-container {
             max-width: 1400px;
             margin: 0 auto;
@@ -175,37 +101,6 @@
         .logo i {
             margin-right: 10px;
             font-size: 24px;
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-        }
-        
-        .user-name {
-            margin-right: 15px;
-            font-weight: 500;
-        }
-        
-        .logout-btn {
-            padding: 8px 15px;
-            background-color: #f8f9fa;
-            color: var(--gray);
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-        }
-        
-        .logout-btn i {
-            margin-right: 8px;
-        }
-        
-        .logout-btn:hover {
-            background-color: #e9ecef;
-            color: var(--danger);
         }
         
         .main-content {
@@ -860,15 +755,6 @@
                 text-align: center;
             }
             
-            .user-info {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .user-name {
-                margin-right: 0;
-            }
-            
             .section-header {
                 flex-direction: column;
                 align-items: flex-start;
@@ -988,48 +874,18 @@
     </style>
 </head>
 <body>
-    <!-- Pantalla de Login -->
-    <div id="loginScreen" class="login-container">
-        <div class="login-card">
-            <div class="login-logo">
-                <i class="fas fa-chart-line"></i> Dashboard Financiero
-            </div>
-            <div class="login-form">
-                <div class="form-group">
-                    <label for="username">Usuario</label>
-                    <div class="form-input">
-                        <i class="fas fa-user"></i>
-                        <input type="text" id="username" placeholder="Ingrese su usuario">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="password">Contraseña</label>
-                    <div class="form-input">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="password" placeholder="Ingrese su contraseña">
-                    </div>
-                </div>
-                <button id="loginBtn" class="login-btn">
-                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
-                </button>
-                <p id="loginError" class="login-error">Usuario o contraseña incorrectos</p>
-            </div>
-        </div>
-    </div>
+    <!-- Botón para volver al portal principal -->
+    <a href="index.html" class="back-to-portal" title="Volver al Portal Principal">
+        <i class="fas fa-home"></i>
+    </a>
     
     <!-- Dashboard Principal -->
-    <div id="dashboard" class="dashboard">
+    <div id="dashboard">
         <div class="dashboard-container">
             <!-- Barra Superior -->
             <div class="top-bar">
                 <div class="logo">
                     <i class="fas fa-chart-line"></i> Dashboard Financiero
-                </div>
-                <div class="user-info">
-                    <div class="user-name">Bienvenido, <span id="userDisplay">Usuario</span></div>
-                    <button id="logoutBtn" class="logout-btn">
-                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                    </button>
                 </div>
             </div>
             
@@ -1489,29 +1345,16 @@
         // URL del flujo de Power Automate para obtener datos
         const dataFlowUrl = "https://prod-39.westus.logic.azure.com:443/workflows/b97c2b90113d49d7a0bf01071e32bff9/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=uP10-qTeIrV-oY3zwbjHvKWOwY815dBaw7Jh6yE9jNg";
         
-        // Credenciales de acceso
-        const validCredentials = {
-            username: "prueba",
-            password: "123#"
-        };
-        
         // Variables globales
         let reportData = [];          // Datos completos del reporte
         let filteredData = [];        // Datos filtrados por año/mes
         let mainChart = null;         // Gráfico principal
         let marginTrendChart = null;  // Gráfico de tendencia de margen
         let marginPercentChart = null; // Gráfico de margen porcentual
-        let accumulatedChart = null;  // Gráfico de acumulados - CORRECCIÓN: Añadido como variable global
+        let accumulatedChart = null;  // Gráfico de acumulados
         
         // Elementos DOM
-        const loginScreen = document.getElementById('loginScreen');
         const dashboard = document.getElementById('dashboard');
-        const loginBtn = document.getElementById('loginBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const loginError = document.getElementById('loginError');
-        const username = document.getElementById('username');
-        const password = document.getElementById('password');
-        const userDisplay = document.getElementById('userDisplay');
         const refreshBtn = document.getElementById('refreshBtn');
         const errorContainer = document.getElementById('errorContainer');
         const errorMessage = document.getElementById('errorMessage');
@@ -1525,52 +1368,6 @@
         const tableLoader = document.getElementById('tableLoader');
         const tableContainer = document.getElementById('tableContainer');
         
-        // Función para validar login
-        loginBtn.addEventListener('click', () => {
-            const usernameValue = username.value.trim();
-            const passwordValue = password.value.trim();
-            
-            if (usernameValue === validCredentials.username && passwordValue === validCredentials.password) {
-                // Login exitoso
-                loginScreen.style.display = 'none';
-                dashboard.style.display = 'block';
-                userDisplay.textContent = usernameValue;
-                loginError.style.display = 'none';
-                
-                // Cargar datos iniciales
-                fetchData();
-                
-                // Mostrar notificación de bienvenida
-                showNotification('success', 'Bienvenido', 'Sesión iniciada correctamente.');
-            } else {
-                // Login fallido
-                loginError.style.display = 'block';
-                password.value = '';
-            }
-        });
-        
-        // Escuchar Enter en campos de login
-        password.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                loginBtn.click();
-            }
-        });
-        
-        username.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                password.focus();
-            }
-        });
-        
-        // Función para cerrar sesión
-        logoutBtn.addEventListener('click', () => {
-            loginScreen.style.display = 'flex';
-            dashboard.style.display = 'none';
-            username.value = '';
-            password.value = '';
-            showNotification('success', 'Sesión cerrada', 'Ha cerrado sesión correctamente.');
-        });
-        
         // Función para actualizar datos
         refreshBtn.addEventListener('click', fetchData);
         
@@ -1582,13 +1379,6 @@
         notificationClose.addEventListener('click', () => {
             notification.classList.remove('show');
         });
-        
-        // Función para mostrar fecha de reporte
-        function showReportDate() {
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const dateStr = new Date().toLocaleDateString('es-CL', options);
-            document.getElementById('reportDate').textContent = `Generado el ${dateStr}`;
-        }
         
         // Función para mostrar notificaciones
         function showNotification(type, title, message) {
@@ -2749,12 +2539,12 @@
             };
             
             // Si ya existe un gráfico, destruirlo
-            if (accumulatedChart) {  // CORRECCIÓN: Usando la variable global accumulatedChart
+            if (accumulatedChart) {
                 accumulatedChart.destroy();
             }
             
             // Crear nuevo gráfico
-            accumulatedChart = new Chart(ctx, chartConfig);  // CORRECCIÓN: Asignando a la variable global
+            accumulatedChart = new Chart(ctx, chartConfig);
         }
         
         // Función para actualizar todos los componentes
@@ -2946,6 +2736,15 @@
                     document.getElementById(`tab-${tabId}`).classList.add('active');
                 });
             });
+            
+            // Verificar si venimos de una sesión iniciada
+            if (!localStorage.getItem('loggedIn')) {
+                // Si no hay sesión, redirigir al portal principal
+                window.location.href = 'index.html';
+            } else {
+                // Cargar datos automáticamente al inicio
+                fetchData();
+            }
         });
     </script>
 </body>
